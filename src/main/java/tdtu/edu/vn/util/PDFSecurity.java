@@ -9,7 +9,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 
 public class PDFSecurity {
-    public void encryptPDF(String source, String destination, String password) {
+    public static void encryptPDF(String source, String destination, String password) {
         try {
             PDDocument document = PDDocument.load(new File(source));
 
@@ -26,7 +26,7 @@ public class PDFSecurity {
         }
     }
 
-    public void autoEnterPassword(String source, String password) {
+    public static void autoEnterPassword(String source, String password) {
         try {
             Robot robot = new Robot();
             Desktop.getDesktop().open(new File(source));

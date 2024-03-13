@@ -136,8 +136,8 @@ public class CartController { // Modify
         }
     }
 
-    @RequestMapping("/order/{validDays}")
-    public ResponseEntity<Order> order(@PathVariable int validDays, HttpServletRequest request) {
+    @RequestMapping("/order")
+    public ResponseEntity<Order> order(@RequestParam int validDays, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         if(token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);

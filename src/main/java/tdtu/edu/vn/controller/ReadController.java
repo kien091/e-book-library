@@ -43,28 +43,19 @@
 
 package tdtu.edu.vn.controller;
 
-import lombok.SneakyThrows;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tdtu.edu.vn.model.ActivationCode;
-import tdtu.edu.vn.model.Document;
-import tdtu.edu.vn.model.Order;
-import tdtu.edu.vn.model.User;
-import tdtu.edu.vn.repository.OrderRepository;
-import tdtu.edu.vn.service.ebook.ActivationCodeService;
-import tdtu.edu.vn.service.ebook.DocumentService;
-import tdtu.edu.vn.service.ebook.OrderService;
-import tdtu.edu.vn.service.ebook.UserService;
+import tdtu.edu.vn.model.*;
+import tdtu.edu.vn.service.ebook.*;
+import tdtu.edu.vn.util.AESUtil;
 import tdtu.edu.vn.util.JwtUtilsHelper;
+import tdtu.edu.vn.util.PDFSecurity;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -74,16 +65,16 @@ import java.nio.file.Paths;
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("")
 public class ReadController {
-    @Autowired
-    private DocumentService documentService;
-    @Autowired
+    private final DocumentService documentService;
     private ActivationCodeService activationCodeService;
-    @Autowired
     private UserService userService;
-    @Autowired
     private JwtUtilsHelper jwtUtilsHelper;
-    @Autowired
     private OrderService orderService;
+    private EncodeDocumentService edService;
+
+    public ReadController(DocumentService documentService) {
+        this.documentService = documentService;
+    }
 
     @GetMapping("/read/{id}/pdf")
     public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, HttpServletRequest request) {
@@ -121,6 +112,10 @@ public class ReadController {
         if (status != ActivationCode.ActivationCodeStatus.USED) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
+
+        // auto enter password (change this if logic isn't correct)
+        EncodeDocument encodeDocument = edService.findByDocumentId(id);
+        PDFSecurity.autoEnterPassword(document.getPdfUrl(), AESUtil.decrypt(encodeDocument.getPassword()));
 
         // Giả sử logic giải mã tài liệu được triển khai khi cần thiết
         return serveDocument(document);
