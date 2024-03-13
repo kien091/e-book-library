@@ -17,4 +17,6 @@ public interface OrderItemRepository extends MongoRepository<OrderItem, String> 
     OrderItem findByOrderId(String orderId);
 
     List<OrderItem> findByBookId(String orderId);
+
+    OrderItem findByBookIdAndOrderId(String bookId, String orderId);
 }

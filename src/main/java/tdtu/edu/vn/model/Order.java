@@ -33,12 +33,4 @@ public class Order {
         DELIVERED,
         CANCELLED
     }
-
-
-
-
-
-
-
-
 }

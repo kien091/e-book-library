@@ -50,7 +50,7 @@ public class CartController { // Modify
             if (order == null) {
                 order = new Order();
                 order.setUserId(user.getId());
-                ArrayList<String> bookIds = new ArrayList<>();
+                List<String> bookIds = new ArrayList<>();
                 bookIds.add(document.getId());
                 order.setBookIds(bookIds);
                 order.setOrderStatus(Order.OrderStatus.CART);
@@ -59,8 +59,11 @@ public class CartController { // Modify
                 // not create ActivationCode in here (when user order it will be created)
             }else {
                 List<String> bookIds = order.getBookIds();
-                bookIds.add(document.getId());
-                order = orderService.updateOrder(order);
+                if(!bookIds.contains(document.getId())){
+                    bookIds.add(document.getId());
+                    order.setBookIds(bookIds);
+                    order = orderService.updateOrder(order);
+                }
             }
 
             // update orderItem
@@ -102,26 +105,28 @@ public class CartController { // Modify
             }
 
             // update order
-            Order order = orderService.getCartByUser(user);
-            if (order == null) {
+            Order cart = orderService.getCartByUser(user);
+            if (cart == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
             }else {
-                List<String> bookIds = order.getBookIds();
-                bookIds.remove(document.getId());
-                order = orderService.updateOrder(order);
-            }
-
-            // update orderItem
-            OrderItem orderItem = orderItemService.getOrderItemByOrderId(order.getId());
-            if(orderItem == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
-            }else {
-                if(orderItem.getQuantity() == 1){
-                    orderItemService.deleteOrderItem(orderItem.getId());
-                }
-                else {
-                    orderItem.setQuantity(orderItem.getQuantity() - 1);
-                    orderItemService.updateOrderItem(orderItem);
+                OrderItem orderItem = orderItemService.findByBookIdAndCartId(document.getId(), cart.getId());
+                if(orderItem == null) {
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
+                }else {
+                    if(orderItem.getQuantity() == 1){
+                        List<String> bookIds = cart.getBookIds();
+                        bookIds.remove(document.getId());
+                        if (bookIds.isEmpty()) {
+                            orderService.deleteOrder(cart);
+                        }else {
+                            orderService.updateOrder(cart);
+                        }
+                        orderItemService.deleteOrderItem(orderItem.getId());
+                    }
+                    else {
+                        orderItem.setQuantity(orderItem.getQuantity() - 1);
+                        orderItemService.updateOrderItem(orderItem);
+                    }
                 }
             }
 
@@ -131,8 +136,8 @@ public class CartController { // Modify
         }
     }
 
-    @RequestMapping("order")
-    public ResponseEntity<Order> order(int validDays, HttpServletRequest request) {
+    @RequestMapping("/order/{validDays}")
+    public ResponseEntity<Order> order(@PathVariable int validDays, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         if(token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);

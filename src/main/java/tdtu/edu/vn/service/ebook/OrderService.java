@@ -60,7 +60,11 @@ public class OrderService {
         return null;
     }
 
-    // Modify
+    public void deleteOrder(Order order) {
+        orderRepository.delete(order);
+    }
+
+    // Modify (change logic after)
     public Order findByUserIdAndBookId(String userId, String bookId){
         List<OrderItem> orderItems = orderItemRepository.findByBookId(bookId);
         return orderRepository.findAll()

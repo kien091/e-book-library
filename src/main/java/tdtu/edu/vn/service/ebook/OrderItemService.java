@@ -48,4 +48,8 @@ public class OrderItemService { // Modify
             orderItemRepository.deleteById(id);
         }
     }
+
+    public OrderItem findByBookIdAndCartId(String bookId, String cartId) {
+        return orderItemRepository.findByBookIdAndOrderId(bookId, cartId);
+    }
 }

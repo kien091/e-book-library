@@ -10,6 +10,6 @@ public interface OrderRepository extends MongoRepository<Order, String> {
     Order findByUserIdAndBookIdsContains(String userId, String bookId);
 
     // Modify
-    @Query(value = "{'userId': ?0}", fields = "{'orderStatus': 'CART'}")
+    @Query(value = "{'userId': ?0, 'orderStatus': 'CART'}")
     Order findCartByUserId(String userId);
 }
