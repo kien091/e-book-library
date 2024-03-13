@@ -15,7 +15,7 @@ public class JwtUtilsHelper {
     @Value("${jwt.expiration}")
     private long expiration;
 
-    public String generateToken(String email, String role) {
+    public String generateToken(String email, String role, String id) {
         key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
         long now = System.currentTimeMillis();
@@ -23,6 +23,7 @@ public class JwtUtilsHelper {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("role", role)
+                .setId(id)
                 .setIssuedAt(new Date(now))
                 .setExpiration(new Date(now + expiration))
                 .signWith(key)
@@ -58,5 +59,14 @@ public class JwtUtilsHelper {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("role");
+    }
+
+    public String getIdFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getId();
     }
 }

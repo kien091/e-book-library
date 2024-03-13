@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "publisher")
+@Document(collection = "Publisher")
 public class Publisher{
     @Id
     private String id;

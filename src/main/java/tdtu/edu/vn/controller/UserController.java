@@ -29,7 +29,7 @@ public class UserController {
         if (userService.checkLogin(user)) {
             User userDb = userService.findByEmail(user.getEmail());
 
-            String token = jwtUtilsHelper.generateToken(userDb.getEmail(), userDb.getRole());
+            String token = jwtUtilsHelper.generateToken(userDb.getEmail(), userDb.getRole(), userDb.getId());
             responseData.setData(token);
 
             return ResponseEntity.ok(responseData);
@@ -65,10 +65,32 @@ public class UserController {
         }
     }
 
-    @PostMapping("/user")
-    public ResponseEntity<?> getUser() {
-        System.out.println("Get user");
 
-        return ResponseEntity.ok("User");
+
+
+    //User: My Profile
+    @GetMapping("/user/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+        User user = userService.getUserById(id);
+        if (user != null) {
+            System.out.println(user);
+            return ResponseEntity.ok(user);
+        } else {
+
+            System.out.println("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<User> updateUser_Profile(@PathVariable String id, @RequestBody User updateUser_Profile) {
+        if (!id.equals(updateUser_Profile.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        User user = userService.updateUser_Profile(updateUser_Profile);
+        if( user != null)
+            return ResponseEntity.ok(user);
+        else
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }

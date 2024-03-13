@@ -40,6 +40,7 @@ public class CustomFilterJwt extends OncePerRequestFilter {
 
                 String email = jwtUtilsHelper.getEmailFromToken(token);
                 String role = jwtUtilsHelper.getRoleFromToken(token);
+                String id = jwtUtilsHelper.getIdFromToken(token);
                 System.out.println("Email: " + email);
                 System.out.println("Role: " + role);
 
@@ -52,8 +53,16 @@ public class CustomFilterJwt extends OncePerRequestFilter {
                     authorities.add(new SimpleGrantedAuthority("USER"));
                 }
 
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(email, null, authorities);
+
+                UserPrincipal userPrincipal = new UserPrincipal(email, id);
+
+                // Thêm userPrincipal vào UsernamePasswordAuthenticationToken
+                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userPrincipal, null, authorities);
+                System.out.println(userPrincipal.getId());
+                System.out.println(userPrincipal.getEmail());
+
                 SecurityContext securityContext = SecurityContextHolder.getContext();
+
 
                 securityContext.setAuthentication(usernamePasswordAuthenticationToken);
             }
@@ -71,5 +80,32 @@ public class CustomFilterJwt extends OncePerRequestFilter {
         }
 
         return token;
+    }
+
+    public class UserPrincipal {
+        private String email;
+        private String id;
+
+        public UserPrincipal(String email, String id) {
+            this.email = email;
+            this.id = id;
+        }
+
+        // getters and setters
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
     }
 }
