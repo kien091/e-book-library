@@ -28,7 +28,7 @@ public class ActivationCodeService {
                         order.getId(),
                         generateUniqueCode(),
                         drm_documents, new Date(),
-                        new Date(System.currentTimeMillis() + validDays * 24 * 60 * 60 * 1000L),
+                        new Date(System.currentTimeMillis() + validDays  * 60 * 1000L), // set valid minutes (change after)
                         ActivationCode.ActivationCodeStatus.UNUSED);
 
         activationCodeRepository.save(activationCode);

@@ -12,18 +12,24 @@ import tdtu.edu.vn.repository.DocumentRepository;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class DocumentService {
     private DocumentRepository documentRepository;
 
+    public List<Document> getAllDocuments() {
+        return documentRepository.findAll();
+    }
     public Page<Document> getAllDocuments(Pageable pageable) {
         return documentRepository.findAll(pageable);
     }
 
     public Document getDocumentById(String id) {
-        return documentRepository.findById(id).get();
+        if(documentRepository.findById(id).isPresent())
+            return documentRepository.findById(id).get();
+        return null;
     }
 
     public Page<Document> searchDocuments(String searchTerm, Pageable pageable) {

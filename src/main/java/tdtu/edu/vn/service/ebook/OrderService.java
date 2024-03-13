@@ -15,30 +15,28 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class OrderService {
+    private DocumentService documentService;
     private OrderRepository orderRepository;
     private ActivationCodeService activationCodeService;
     private OrderItemRepository orderItemRepository;
 
-    public Order placeOrder(User user, List<Document> documents, int validDays) {
-        if (documents == null || documents.isEmpty()) {
-            throw new IllegalArgumentException("Documents cannot be empty");
-        }
+    public Order order(Order cart, int validDays) {
+        cart.setOrderDate(new Date());
+        cart.setOrderStatus(Order.OrderStatus.ORDERED);
+        Order savedOrder = orderRepository.save(cart);
 
-        List<String> all_documents = documents.stream()
-                .map(Document::getId)
+        List<Document> allDocuments = documentService.getAllDocuments()
+                .stream()
+                .filter(document -> cart.getBookIds().contains(document.getId()))
                 .toList();
 
-        List<String> drm_documents = documents.stream()
+        List<String> drm_documents = allDocuments
+                .stream()
                 .filter(Document::getDrmEnabled)
                 .map(Document::getId)
                 .toList();
 
-        Order order = new Order(null, user.getId(), all_documents, null, new Date(), Order.OrderStatus.ORDERED);
-        Order savedOrder = orderRepository.save(order);
-
-        if (!drm_documents.isEmpty()) {
-            activationCodeService.createActivationCode(savedOrder, drm_documents, validDays);
-        }
+        activationCodeService.createActivationCode(savedOrder, drm_documents, validDays);
 
         return savedOrder;
     }

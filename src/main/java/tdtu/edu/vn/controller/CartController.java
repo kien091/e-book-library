@@ -13,6 +13,7 @@ import tdtu.edu.vn.util.JwtUtilsHelper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -25,7 +26,6 @@ public class CartController { // Modify
     ActivationCodeService acService;
     OrderService orderService;
     OrderItemService orderItemService;
-
     JwtUtilsHelper jwtUtilsHelper;
 
     @PostMapping("/book/{id}")
@@ -70,7 +70,7 @@ public class CartController { // Modify
                 orderItem.setOrderId(order.getId());
                 orderItem.setBookId(document.getId());
                 orderItem.setQuantity(1);
-                orderItem.setDate(order.getOrderDate());
+                orderItem.setDate(new Date());
                 orderItem.setCombo(false);
                 orderItemService.createOrderItem(orderItem);
             }else {
@@ -116,8 +116,13 @@ public class CartController { // Modify
             if(orderItem == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
             }else {
-                orderItem.setQuantity(orderItem.getQuantity() - 1);
-                orderItemService.updateOrderItem(orderItem);
+                if(orderItem.getQuantity() == 1){
+                    orderItemService.deleteOrderItem(orderItem.getId());
+                }
+                else {
+                    orderItem.setQuantity(orderItem.getQuantity() - 1);
+                    orderItemService.updateOrderItem(orderItem);
+                }
             }
 
             return ResponseEntity.ok("Remove book to cart successfully");
@@ -126,4 +131,28 @@ public class CartController { // Modify
         }
     }
 
+    @RequestMapping("order")
+    public ResponseEntity<Order> order(int validDays, HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if(token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String email = jwtUtilsHelper.getEmailFromToken(token);
+
+            User user = userService.findByEmail(email);
+            if(user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
+
+            Order order = orderService.getCartByUser(user);
+            if(order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            order = orderService.order(order, validDays);
+
+            return ResponseEntity.ok(order);
+        }else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
 }
