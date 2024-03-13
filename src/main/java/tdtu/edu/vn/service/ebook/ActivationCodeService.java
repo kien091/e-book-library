@@ -3,7 +3,6 @@ package tdtu.edu.vn.service.ebook;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import tdtu.edu.vn.model.ActivationCode;
-import tdtu.edu.vn.model.Document;
 import tdtu.edu.vn.model.Order;
 import tdtu.edu.vn.repository.ActivationCodeRespository;
 import tdtu.edu.vn.repository.OrderRepository;
@@ -11,6 +10,7 @@ import tdtu.edu.vn.repository.OrderRepository;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -39,10 +39,14 @@ public class ActivationCodeService {
         return activationCode;
     }
 
-    private String generateUniqueCode() {
+    public String generateUniqueCode() {
         Random random = new Random();
-        int code = 100000 + random.nextInt(900000);
-        return String.valueOf(code);
+        int length = 16;
+
+        // with 10 digits and 26 characters (use ascii code to convert to character)
+        return System.currentTimeMillis() + random.ints(length, 0, 36)
+                .mapToObj(i -> i < 10 ? String.valueOf(i) : String.valueOf((char) (i + 55)))
+                .collect(Collectors.joining());
     }
 
     public ActivationCode findValidActivationCodeForDocument(String bookId) {

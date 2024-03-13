@@ -1,12 +1,12 @@
 package tdtu.edu.vn.controller;
 
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tdtu.edu.vn.Payload.ResponseData;
 import tdtu.edu.vn.model.User;
+import tdtu.edu.vn.service.ebook.ActivationCodeService;
 import tdtu.edu.vn.service.ebook.UserService;
 import tdtu.edu.vn.util.JwtUtilsHelper;
 
@@ -16,6 +16,7 @@ import tdtu.edu.vn.util.JwtUtilsHelper;
 public class UserController {
     UserService userService;
     JwtUtilsHelper jwtUtilsHelper;
+    ActivationCodeService activationCodeService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {

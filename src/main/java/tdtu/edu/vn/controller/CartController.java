@@ -4,15 +4,16 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tdtu.edu.vn.Payload.ResponseData;
-import tdtu.edu.vn.model.*;
+import tdtu.edu.vn.model.Document;
+import tdtu.edu.vn.model.Order;
+import tdtu.edu.vn.model.OrderItem;
+import tdtu.edu.vn.model.User;
 import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.JwtUtilsHelper;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -83,16 +84,46 @@ public class CartController { // Modify
         }
     }
 
-    // add method to order all books in cart (it will be created activation code for this)
-    // add method to remove book from cart
+    @PostMapping("/book/remove/{id}")
+    public ResponseEntity<String> removeBookToCart(@PathVariable String id, HttpServletRequest request){
+        String token = request.getHeader("Authorization");
+        if(token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String email = jwtUtilsHelper.getEmailFromToken(token);
 
-    private String generateActivationCode() {
-        Random random = new Random();
-        int length = 16;
+            User user = userService.findByEmail(email);
+            if(user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            }
 
-        // with 10 digits and 26 characters (use ascii code to convert to character)
-        return random.ints(length, 0, 36)
-                .mapToObj(i -> i < 10 ? String.valueOf(i) : String.valueOf((char) (i + 55)))
-                .collect(Collectors.joining());
+            Document document = documentService.getDocumentById(id);
+            if(document == null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
+            }
+
+            // update order
+            Order order = orderService.getCartByUser(user);
+            if (order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
+            }else {
+                List<String> bookIds = order.getBookIds();
+                bookIds.remove(document.getId());
+                order = orderService.updateOrder(order);
+            }
+
+            // update orderItem
+            OrderItem orderItem = orderItemService.getOrderItemByOrderId(order.getId());
+            if(orderItem == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
+            }else {
+                orderItem.setQuantity(orderItem.getQuantity() - 1);
+                orderItemService.updateOrderItem(orderItem);
+            }
+
+            return ResponseEntity.ok("Remove book to cart successfully");
+        }else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
     }
+
 }

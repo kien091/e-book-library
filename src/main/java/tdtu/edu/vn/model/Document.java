@@ -11,7 +11,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@org.springframework.data.mongodb.core.mapping.Document(collection = "Document")
+@org.springframework.data.mongodb.core.mapping.Document(collection = "Book")
 public class Document implements Serializable {
     @Id
     private String id;
