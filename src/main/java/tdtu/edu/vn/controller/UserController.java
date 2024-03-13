@@ -2,6 +2,7 @@ package tdtu.edu.vn.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,5 +70,31 @@ public class UserController {
         System.out.println("Get user");
 
         return ResponseEntity.ok("User");
+    }
+
+    //User: My Profile
+    @GetMapping("/user/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+        User user = userService.getUserById(id);
+        if (user != null) {
+            System.out.println(user);
+            return ResponseEntity.ok(user);
+        } else {
+
+            System.out.println("User not found");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
+
+    @PutMapping("/user/{id}")
+    public ResponseEntity<User> updateUser_Profile(@PathVariable String id, @RequestBody User updateUser_Profile) {
+        if (!id.equals(updateUser_Profile.getId())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        User user = userService.updateUser_Profile(updateUser_Profile);
+        if( user != null)
+            return ResponseEntity.ok(user);
+        else
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }

@@ -103,4 +103,25 @@ public class UserService implements UserDetailsService {
     public User updateUser(User updatedUser) {
         return userRepository.save(updatedUser);
     }
+
+    //My Profile User
+    public User getUserById(String id){
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public User updateUser_Profile(User updatedUser)
+    {
+        User existingUser = userRepository.findById(updatedUser.getId()).orElse(null);
+        if (existingUser!=null){
+            existingUser.setAvatar(updatedUser.getAvatar());
+            existingUser.setPhone(updatedUser.getPhone());
+            existingUser.setAddress(updatedUser.getAddress());
+            existingUser.setSex(updatedUser.getSex());
+            existingUser.setFullname(updatedUser.getFullname());
+            existingUser.setBirthday(updatedUser.getBirthday());
+            existingUser.setSubscribe(updatedUser.getSubscribe());
+            return userRepository.save(existingUser);
+        }
+        return null;
+    }
 }
