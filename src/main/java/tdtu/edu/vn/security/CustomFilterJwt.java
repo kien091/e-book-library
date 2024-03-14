@@ -41,6 +41,11 @@ public class CustomFilterJwt extends OncePerRequestFilter {
                 String email = jwtUtilsHelper.getEmailFromToken(token);
                 String role = jwtUtilsHelper.getRoleFromToken(token);
                 String id = jwtUtilsHelper.getIdFromToken(token);
+                if (id == null || id.isEmpty()) {
+                    // Xử lý trường hợp id bị null hoặc rỗng
+                    // Ví dụ, bạn có thể gán một giá trị mặc định hoặc ném một ngoại lệ
+                    id = "default_id";
+                }
                 System.out.println("Email: " + email);
                 System.out.println("Role: " + role);
 

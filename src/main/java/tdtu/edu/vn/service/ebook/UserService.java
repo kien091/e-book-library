@@ -28,6 +28,14 @@ public class UserService implements UserDetailsService {
 
         user.setPassword(passwordEncoder.encode(password));
         user.setConfirmPassword(passwordEncoder.encode(password));
+        user.setPhone("");
+        user.setFullname("");
+        user.setAddress("");
+        user.setSex("");
+        user.setBirthday("");
+        user.setCreateday(new Date());
+        user.setSubscribe("");
+        user.setAvatar(new byte[0]);
         user.setRole("ROLE_USER");
         user.setCreateday(new Date());
 
@@ -113,13 +121,28 @@ public class UserService implements UserDetailsService {
     {
         User existingUser = userRepository.findById(updatedUser.getId()).orElse(null);
         if (existingUser!=null){
-            existingUser.setAvatar(updatedUser.getAvatar());
-            existingUser.setPhone(updatedUser.getPhone());
-            existingUser.setAddress(updatedUser.getAddress());
-            existingUser.setSex(updatedUser.getSex());
-            existingUser.setFullname(updatedUser.getFullname());
-            existingUser.setBirthday(updatedUser.getBirthday());
+            // Cập nhật các trường dữ liệu nếu chúng khác null
+            if (updatedUser.getAvatar() != null) {
+                existingUser.setAvatar(updatedUser.getAvatar());
+            }
+            if (updatedUser.getPhone() != null) {
+                existingUser.setPhone(updatedUser.getPhone());
+            }
+            if (updatedUser.getAddress() != null) {
+                existingUser.setAddress(updatedUser.getAddress());
+            }
+            if (updatedUser.getSex() != null) {
+                existingUser.setSex(updatedUser.getSex());
+            }
+            if (updatedUser.getFullname() != null) {
+                existingUser.setFullname(updatedUser.getFullname());
+            }
+            if (updatedUser.getBirthday() != null) {
+                existingUser.setBirthday(updatedUser.getBirthday());
+            }
             existingUser.setSubscribe(updatedUser.getSubscribe());
+
+            System.out.println("Updating user profile: " + existingUser);
             return userRepository.save(existingUser);
         }
         return null;

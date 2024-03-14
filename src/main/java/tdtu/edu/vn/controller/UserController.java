@@ -1,14 +1,19 @@
 package tdtu.edu.vn.controller;
 
 import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tdtu.edu.vn.Payload.ResponseData;
 import tdtu.edu.vn.model.User;
 import tdtu.edu.vn.service.ebook.ActivationCodeService;
 import tdtu.edu.vn.service.ebook.UserService;
 import tdtu.edu.vn.util.JwtUtilsHelper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -30,14 +35,17 @@ public class UserController {
             User userDb = userService.findByEmail(user.getEmail());
 
             String token = jwtUtilsHelper.generateToken(userDb.getEmail(), userDb.getRole(), userDb.getId());
-            responseData.setData(token);
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            data.put("id", userDb.getId());
+            responseData.setData(data);
 
             return ResponseEntity.ok(responseData);
         } else {
             responseData.setData(null);
             responseData.setSuccess(false);
 
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseData);
         }
     }
 
@@ -82,15 +90,41 @@ public class UserController {
         }
     }
 
+    @SneakyThrows
     @PutMapping("/user/{id}")
-    public ResponseEntity<User> updateUser_Profile(@PathVariable String id, @RequestBody User updateUser_Profile) {
-        if (!id.equals(updateUser_Profile.getId())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+    public ResponseEntity<User> updateUser_Profile(
+            @PathVariable String id,
+            @RequestPart("avatar") MultipartFile avatar,
+            @RequestPart("phone") String phone,
+            @RequestPart("address") String address,
+            @RequestPart("sex") String sex,
+            @RequestPart("fullname") String fullname,
+            @RequestPart("birthday") String birthday,
+            @RequestPart("subscribe") String subscribe) {
+
+        try {
+            User updateUser_Profile = new User();
+            updateUser_Profile.setId(id);
+            updateUser_Profile.setAvatar(avatar.getBytes());
+            updateUser_Profile.setPhone(phone);
+            updateUser_Profile.setAddress(address);
+            updateUser_Profile.setSex(sex);
+            updateUser_Profile.setFullname(fullname);
+            updateUser_Profile.setBirthday(birthday);
+            updateUser_Profile.setSubscribe(subscribe);
+
+            if (!id.equals(updateUser_Profile.getId())) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            User user = userService.updateUser_Profile(updateUser_Profile);
+            if (user != null) {
+                return ResponseEntity.ok(user);
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating user profile: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        User user = userService.updateUser_Profile(updateUser_Profile);
-        if( user != null)
-            return ResponseEntity.ok(user);
-        else
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 }
