@@ -43,6 +43,7 @@
 
 package tdtu.edu.vn.controller;
 
+import lombok.AllArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -64,6 +65,7 @@ import java.nio.file.Paths;
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("")
+@AllArgsConstructor
 public class ReadController {
     private final DocumentService documentService;
     private ActivationCodeService activationCodeService;
@@ -71,13 +73,8 @@ public class ReadController {
     private JwtUtilsHelper jwtUtilsHelper;
     private OrderService orderService;
     private EncodeDocumentService edService;
-
-    public ReadController(DocumentService documentService) {
-        this.documentService = documentService;
-    }
-
     @GetMapping("/read/{id}/pdf")
-    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, HttpServletRequest request) {
+    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, @RequestBody String activationCode, HttpServletRequest request) {
         // Lấy token từ header
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
@@ -97,6 +94,14 @@ public class ReadController {
         // Kiểm tra xem mã kích hoạt có tồn tại không
         ActivationCode activation = activationCodeService.findActivationCodeIdByOrderId(orderId);
         if (activation == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // if you want to check with another status, you can modify this function in activationCodeService
+        ActivationCode codeToCheck = activationCodeService.findValidActivationCode(activationCode, id);
+
+        // if logic is not correct, you have to check status of codeToCheck
+        if(!activation.equals(codeToCheck)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 

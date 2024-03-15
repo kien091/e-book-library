@@ -19,7 +19,7 @@ public class ActivationCodeService {
     private OrderRepository orderRepository;
 
     public ActivationCode findValidActivationCode(String code, String bookId) {
-        return activationCodeRepository.findByCodeAndStatusAndBookWithDrmIdsContains(code, ActivationCode.ActivationCodeStatus.UNUSED, bookId);
+        return activationCodeRepository.findByCodeAndStatusAndBookWithDrmIdsContains(code, ActivationCode.ActivationCodeStatus.USED, bookId);
     }
 
     public ActivationCode createActivationCode(Order order, List<String> drm_documents, int validDays) {
