@@ -67,7 +67,7 @@ public class CartController { // Modify
             }
 
             // update orderItem
-            OrderItem orderItem = orderItemService.getOrderItemByOrderId(order.getId());
+            OrderItem orderItem = orderItemService.getOrderItemByOrderIdAndBookId(order.getId(), document.getId());
             if(orderItem == null) {
                 orderItem = new OrderItem();
                 orderItem.setOrderId(order.getId());
@@ -156,6 +156,30 @@ public class CartController { // Modify
             order = orderService.order(order, validDays);
 
             return ResponseEntity.ok(order);
+        }else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    @RequestMapping("/cart")
+    public ResponseEntity<List<OrderItem>> getCart(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if(token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String email = jwtUtilsHelper.getEmailFromToken(token);
+
+            User user = userService.findByEmail(email);
+            if(user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
+
+            Order order = orderService.getCartByUser(user);
+            if(order == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+            }
+
+            List<OrderItem> orderItems = orderItemService.getAllOrderItemByOrderId(order.getId());
+            return ResponseEntity.ok(orderItems);
         }else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }

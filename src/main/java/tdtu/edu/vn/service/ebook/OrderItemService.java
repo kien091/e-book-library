@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import tdtu.edu.vn.model.OrderItem;
 import tdtu.edu.vn.repository.OrderItemRepository;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class OrderItemService { // Modify
@@ -18,6 +20,10 @@ public class OrderItemService { // Modify
         return orderItemRepository.findAll(pageable);
     }
 
+    public OrderItem getOrderItemByOrderIdAndBookId(String orderId, String bookId) {
+        return orderItemRepository.findByBookIdAndOrderId(bookId, orderId);
+    }
+
     public OrderItem getOrderItemById(String id) {
         if (orderItemRepository.findById(id).isPresent()) {
             return orderItemRepository.findById(id).get();
@@ -25,11 +31,8 @@ public class OrderItemService { // Modify
         return null;
     }
 
-    public OrderItem getOrderItemByOrderId(String orderId) {
-        if (orderItemRepository.findByOrderId(orderId) != null) {
-            return orderItemRepository.findByOrderId(orderId);
-        }
-        return null;
+    public List<OrderItem> getAllOrderItemByOrderId(String orderId) {
+        return orderItemRepository.findByOrderId(orderId);
     }
 
     public OrderItem createOrderItem(OrderItem orderItem) {
