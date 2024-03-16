@@ -70,4 +70,11 @@ public class ActivationCodeService {
     public ActivationCode getActivationCodeById(String id) {
         return activationCodeRepository.findById(id).orElse(null);
     }
+
+    public ActivationCode updateActivationCode(ActivationCode activationCode) {
+        if(activationCodeRepository.existsById(activationCode.getId())) {
+            return activationCodeRepository.save(activationCode);
+        }
+        return null;
+    }
 }

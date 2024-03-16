@@ -3,10 +3,13 @@ package tdtu.edu.vn.util;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
+import org.springframework.core.io.ByteArrayResource;
 
 import java.awt.*;
 import java.awt.event.KeyEvent;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 
 public class PDFSecurity {
     public static void encryptPDF(String source, String destination, String password) {
@@ -26,21 +29,18 @@ public class PDFSecurity {
         }
     }
 
-    public static void autoEnterPassword(String source, String password) {
+    public static ByteArrayResource openEncryptedPdf(String source, String decryptedPassword) {
         try {
-            Robot robot = new Robot();
-            Desktop.getDesktop().open(new File(source));
+            PDDocument pdDocument = PDDocument.load(new File(source), decryptedPassword);
 
-            for (char c : password.toCharArray()) {
-                int keyCode = KeyEvent.getExtendedKeyCodeForChar(c);
-                robot.keyPress(keyCode);
-                robot.keyRelease(keyCode);
-            }
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            pdDocument.save(byteArrayOutputStream);
+            pdDocument.close();
 
-            robot.keyPress(KeyEvent.VK_ENTER);
-            robot.keyRelease(KeyEvent.VK_ENTER);
-        } catch (Exception e) {
+            return new ByteArrayResource(byteArrayOutputStream.toByteArray());
+        } catch (IOException e) {
             System.out.println(e.getMessage());
+            return null;
         }
     }
 }

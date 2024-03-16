@@ -65,6 +65,8 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 
+import static tdtu.edu.vn.util.PDFSecurity.openEncryptedPdf;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("")
@@ -87,6 +89,13 @@ public class ReadController {
         String email = jwtUtilsHelper.getEmailFromToken(token);
         User user = userService.findByEmail(email);
         String userId = user.getId();
+
+        Document document = documentService.getDocumentById(id);
+        if (!document.getDrmEnabled()) {
+            //tài liệu không phải DRM
+            return serveDocument(document);
+        }
+
         // Kiểm tra xem người dùng có đơn hàng không
         List<Order> orderList = orderService.findByUserIdAndBookId(userId, id); // modify
         if (orderList == null) {
@@ -104,22 +113,18 @@ public class ReadController {
         }
 
         // check valid date
-        if(activation.getEndDate().before(new Date())){
+        if(activation.getEndDate().before(new Date())) {
+            activation.setStatus(ActivationCode.ActivationCodeStatus.EXPIRED);
+            activationCodeService.updateActivationCode(activation);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        Document document = documentService.getDocumentById(id);
-        if (!document.getDrmEnabled()) {
-            //tài liệu không phải DRM
-            return serveDocument(document);
         }
 
         // auto enter password (change this if logic isn't correct)
         EncodeDocument encodeDocument = edService.findByDocumentId(id);
-        PDFSecurity.autoEnterPassword(document.getPdfUrl(), AESUtil.decrypt(encodeDocument.getPassword()));
-
-        // Giả sử logic giải mã tài liệu được triển khai khi cần thiết
-        return serveDocument(document);
+        ByteArrayResource resource = openEncryptedPdf(document.getPdfUrl(), AESUtil.decrypt(encodeDocument.getPassword()));
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(resource);
     }
 
     private ResponseEntity<Resource> serveDocument(Document document) {

@@ -22,13 +22,12 @@ public class DocumentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Document> getDocumentById(@PathVariable String id)
-    {
-        Document book = documentService.getDocumentById(id);
-        if(book == null){
+    public ResponseEntity<Document> getDocumentById(@PathVariable String id) {
+        Document document = documentService.getDocumentById(id);
+        if (document == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(book);
+        return ResponseEntity.ok(document);
     }
 
     @GetMapping("/search")
