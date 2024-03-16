@@ -58,7 +58,12 @@ public class ActivationCodeService {
         return activationCodeRepository.findByOrderId(orderId);
     }
 
-    public ActivationCode getActivationCodeById(String id) {
-        return activationCodeRepository.findById(id).orElse(null);
+    public ActivationCode findValidCodeWithOrderIdAndBookId(List<Order> orders, String bookId) {
+        return activationCodeRepository.findAll().stream()
+                .filter(activationCode -> orders.stream().anyMatch(order -> order.getId().equals(activationCode.getOrderId())))
+                .filter(activationCode -> activationCode.getStatus().equals(ActivationCode.ActivationCodeStatus.USED))
+                .filter(activationCode -> activationCode.getBookWithDrmIds().contains(bookId))
+                .findFirst()
+                .orElse(null);
     }
 }

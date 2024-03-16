@@ -51,6 +51,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tdtu.edu.vn.model.*;
+import tdtu.edu.vn.repository.ActivationCodeRespository;
 import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.AESUtil;
 import tdtu.edu.vn.util.JwtUtilsHelper;
@@ -61,6 +62,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:3000")
@@ -74,7 +77,7 @@ public class ReadController {
     private OrderService orderService;
     private EncodeDocumentService edService;
     @GetMapping("/read/{id}/pdf")
-    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, @RequestBody String activationCode, HttpServletRequest request) {
+    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, @RequestBody ActivationCode activationCode, HttpServletRequest request) {
         // Lấy token từ header
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
@@ -85,37 +88,30 @@ public class ReadController {
         User user = userService.findByEmail(email);
         String userId = user.getId();
         // Kiểm tra xem người dùng có đơn hàng không
-        Order order = orderService.findByUserIdAndBookId(userId, id); // modify
-        if (order == null) {
+        List<Order> orderList = orderService.findByUserIdAndBookId(userId, id); // modify
+        if (orderList == null) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        String orderId = order.getId();
-        // Kiểm tra xem mã kích hoạt có tồn tại không
-        ActivationCode activation = activationCodeService.findActivationCodeIdByOrderId(orderId);
-        if (activation == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
+        // find activation code with status USED
+        ActivationCode activation = activationCodeService.findValidCodeWithOrderIdAndBookId(orderList, id);
 
         // if you want to check with another status, you can modify this function in activationCodeService
-        ActivationCode codeToCheck = activationCodeService.findValidActivationCode(activationCode, id);
+        ActivationCode codeToCheck = activationCodeService.findValidActivationCode(activationCode.getCode(), id);
 
-        // if logic is not correct, you have to check status of codeToCheck
         if(!activation.equals(codeToCheck)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        ActivationCode.ActivationCodeStatus status = activation.getStatus();
+        // check valid date
+        if(activation.getEndDate().before(new Date())){
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
 
         Document document = documentService.getDocumentById(id);
         if (!document.getDrmEnabled()) {
             //tài liệu không phải DRM
             return serveDocument(document);
-        }
-
-        // Đối với các tài liệu hỗ trợ DRM, hãy kiểm tra kích hoạt và quyền người dùng
-        if (status != ActivationCode.ActivationCodeStatus.USED) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
         // auto enter password (change this if logic isn't correct)
@@ -135,6 +131,7 @@ public class ReadController {
 
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
+
 
             // Đọc tài liệu từ đĩa
             byte[] documentBytes = Files.readAllBytes(path);
