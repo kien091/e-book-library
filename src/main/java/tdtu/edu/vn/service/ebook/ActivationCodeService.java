@@ -57,4 +57,8 @@ public class ActivationCodeService {
     public ActivationCode findActivationCodeIdByOrderId(String orderId) {
         return activationCodeRepository.findByOrderId(orderId);
     }
+
+    public ActivationCode getActivationCodeById(String id) {
+        return activationCodeRepository.findById(id).orElse(null);
+    }
 }

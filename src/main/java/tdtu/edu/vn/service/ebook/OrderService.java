@@ -43,7 +43,7 @@ public class OrderService {
 
     // Modify
     public Order getCartByUser(User user) {
-        if(orderRepository.findCartByUserId(user.getId()) != null)
+        if (orderRepository.findCartByUserId(user.getId()) != null)
             return orderRepository.findCartByUserId(user.getId());
         return null;
     }
@@ -55,17 +55,22 @@ public class OrderService {
 
     // Modify
     public Order updateOrder(Order order) {
-        if(orderRepository.existsById(order.getId()))
+        if (orderRepository.existsById(order.getId()))
             return orderRepository.save(order);
         return null;
     }
 
-    public void deleteOrder(Order order) {
-        orderRepository.delete(order);
+    public boolean deleteOrder(Order order) {
+        try {
+            orderRepository.delete(order);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Modify (change logic after)
-    public Order findByUserIdAndBookId(String userId, String bookId){
+    public Order findByUserIdAndBookId(String userId, String bookId) {
         List<OrderItem> orderItems = orderItemRepository.findByBookId(bookId);
         return orderRepository.findAll()
                 .stream()
@@ -73,5 +78,13 @@ public class OrderService {
                 .filter(order -> orderItems.stream().anyMatch(orderItem -> orderItem.getOrderId().equals(order.getId())))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public Order getOrderById(String id) {
+        return orderRepository.findById(id).orElse(null);
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 }

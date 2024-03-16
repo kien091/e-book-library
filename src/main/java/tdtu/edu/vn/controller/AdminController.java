@@ -1,20 +1,20 @@
 package tdtu.edu.vn.controller;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import tdtu.edu.vn.model.Document;
-import tdtu.edu.vn.model.EncodeDocument;
-import tdtu.edu.vn.model.User;
-import tdtu.edu.vn.service.ebook.DocumentService;
-import tdtu.edu.vn.service.ebook.EncodeDocumentService;
-import tdtu.edu.vn.service.ebook.UserService;
+import tdtu.edu.vn.model.*;
+import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.AESUtil;
 import tdtu.edu.vn.util.PDFSecurity;
 
 import java.security.Principal;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -25,9 +25,12 @@ import java.util.stream.Collectors;
 @RequestMapping("/admin")
 public class AdminController {
     private DocumentService documentService;
+    private ActivationCodeService activationCodeService;
     private UserService userService;
+    private OrderService orderService;
     private BCryptPasswordEncoder passwordEncoder;
     private EncodeDocumentService edService;
+
 
     @PostMapping("/create-document")
     public ResponseEntity<Document> createDocument(@RequestBody Document newBook) {
@@ -173,4 +176,92 @@ public class AdminController {
                 .mapToObj(i -> i < 10 ? String.valueOf(i) : String.valueOf((char) (i + 55)))
                 .collect(Collectors.joining());
     }
+
+    @PostMapping("/create-order")
+    public ResponseEntity<Order> createOrder(@RequestBody Order newOrder) {
+        newOrder.setId(null);
+        newOrder.setOrderDate(new Date());
+        Order savedOrder = orderService.createOrder(newOrder);
+
+        if (savedOrder == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(savedOrder);
+    }
+
+    @PostMapping("/update-order")
+    public ResponseEntity<Order> updateOrder(@RequestBody Order updatedOrder) {
+        Order existingOrder = orderService.getOrderById(updatedOrder.getId());
+
+        if (existingOrder == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        updatedOrder.setOrderDate(existingOrder.getOrderDate());
+        Order savedOrder = orderService.updateOrder(updatedOrder);
+
+
+        if (savedOrder == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(savedOrder);
+    }
+
+    @PostMapping("/delete-order")
+    public ResponseEntity<Order> deleteOrder(@RequestBody Order order) {
+        Order existingOrder = orderService.getOrderById(order.getId());
+
+        if (existingOrder == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (orderService.deleteOrder(order)) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> responses = new ArrayList<>();
+        List<Order> orders = orderService.getAllOrders();
+
+        if (orders == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        for (Order order : orders) {
+            User user = userService.getUserById(order.getUserId());
+            List<Document> documents = new ArrayList<>();
+
+            for (String bookId : order.getBookIds()) {
+                try {
+                    documents.add(documentService.getDocumentById(bookId));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            ActivationCode activationCode = null;
+            if (order.getActivationCodeId() != null) {
+                activationCode = activationCodeService.getActivationCodeById(order.getActivationCodeId());
+            }
+            responses.add(new OrderResponse(order, user, documents, activationCode));
+        }
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    class OrderResponse {
+        Order order;
+        User user;
+        List<Document> documents;
+        ActivationCode activationCode;
+    }
 }
+

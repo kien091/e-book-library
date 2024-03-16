@@ -28,6 +28,7 @@ public class CartController { // Modify
     OrderItemService orderItemService;
     JwtUtilsHelper jwtUtilsHelper;
 
+
     @PostMapping("/book/{id}")
     public ResponseEntity<String> addBookToCart(@PathVariable String id, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
@@ -129,6 +130,7 @@ public class CartController { // Modify
                     }
                 }
             }
+            System.out.println("Cart not found");
 
             return ResponseEntity.ok("Remove book to cart successfully");
         }else {
@@ -161,7 +163,7 @@ public class CartController { // Modify
         }
     }
 
-    @RequestMapping("/cart")
+    @RequestMapping("")
     public ResponseEntity<List<OrderItem>> getCart(HttpServletRequest request) {
         String token = request.getHeader("Authorization");
         if(token != null && token.startsWith("Bearer ")) {
@@ -179,9 +181,16 @@ public class CartController { // Modify
             }
 
             List<OrderItem> orderItems = orderItemService.getAllOrderItemByOrderId(order.getId());
+            for (OrderItem orderItem : orderItems) {
+                Document document = documentService.getDocumentById(orderItem.getBookId());
+                if (document != null) {
+                    orderItem.setBookId(document.getName());
+                }
+            }
             return ResponseEntity.ok(orderItems);
         }else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
+
 }
