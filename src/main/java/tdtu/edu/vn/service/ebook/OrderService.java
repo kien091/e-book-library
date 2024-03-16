@@ -60,8 +60,13 @@ public class OrderService {
         return null;
     }
 
-    public void deleteOrder(Order order) {
+    public boolean deleteOrder(Order order) {
         orderRepository.delete(order);
+        return true;
+    }
+
+    public Order getOrderById(String id) {
+        return orderRepository.findById(id).orElse(null);
     }
 
     // Modify (change logic after)
@@ -73,5 +78,9 @@ public class OrderService {
                 .filter(order -> orderItems.stream().anyMatch(orderItem -> orderItem.getOrderId().equals(order.getId())))
                 .filter(order -> order.getOrderStatus().equals(Order.OrderStatus.ORDERED))
                 .toList();
+    }
+
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
     }
 }

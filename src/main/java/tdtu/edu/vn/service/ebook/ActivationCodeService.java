@@ -66,4 +66,8 @@ public class ActivationCodeService {
                 .findFirst()
                 .orElse(null);
     }
+
+    public ActivationCode getActivationCodeById(String id) {
+        return activationCodeRepository.findById(id).orElse(null);
+    }
 }
