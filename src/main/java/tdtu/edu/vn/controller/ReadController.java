@@ -79,7 +79,7 @@ public class ReadController {
     private OrderService orderService;
     private EncodeDocumentService edService;
     @GetMapping("/read/{id}/pdf")
-    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, @RequestBody ActivationCode activationCode, HttpServletRequest request) {
+    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, @RequestBody(required = false) ActivationCode activationCode, HttpServletRequest request) {
         // Lấy token từ header
         String token = request.getHeader("Authorization");
         if (token != null && token.startsWith("Bearer ")) {
@@ -106,6 +106,10 @@ public class ReadController {
         ActivationCode activation = activationCodeService.findValidCodeWithOrderIdAndBookId(orderList, id);
 
         // if you want to check with another status, you can modify this function in activationCodeService
+        if (activationCode == null) {
+            activationCode = new ActivationCode();
+            activationCode.setCode("");
+        }
         ActivationCode codeToCheck = activationCodeService.findValidActivationCode(activationCode.getCode(), id);
 
         if(!activation.equals(codeToCheck)){
