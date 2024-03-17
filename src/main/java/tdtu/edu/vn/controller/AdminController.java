@@ -33,6 +33,7 @@ public class AdminController {
     private OrderService orderService;
     private BCryptPasswordEncoder passwordEncoder;
     private EncodeDocumentService edService;
+    private EmailService emailService;
 
 
     // CRUD for author
@@ -478,6 +479,8 @@ public class AdminController {
 
 
     // Another methods (not CRUD)
+
+    // Change user password
     @PostMapping("/change-user-password")
     public ResponseEntity<User> changeUserPassword(@RequestBody User user) {
         User existingUser = userService.findByEmail(user.getEmail());
@@ -505,6 +508,53 @@ public class AdminController {
         return System.currentTimeMillis() + random.ints(length, 0, 36)
                 .mapToObj(i -> i < 10 ? String.valueOf(i) : String.valueOf((char) (i + 55)))
                 .collect(Collectors.joining());
+    }
+
+    // accept order (change status of activation code)
+    @PostMapping("/accept-order")
+    public ResponseEntity<Order> acceptOrder(@RequestBody Order order) {
+        Order existingOrder = orderService.getOrderById(order.getId());
+
+        if (existingOrder == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        existingOrder.setOrderStatus(Order.OrderStatus.ACCEPTED);
+        orderService.updateOrder(existingOrder);
+
+        ActivationCode activationCode = activationCodeService.getActivationCodeById(existingOrder.getActivationCodeId());
+        activationCode.setStatus(ActivationCode.ActivationCodeStatus.USED);
+        activationCodeService.updateActivationCode(activationCode);
+
+        // send activation code to user's email
+        try {
+            User user = userService.getUserById(existingOrder.getUserId());
+            String subject = "Activation code for your order";
+            String body = "Your activation code is: " + activationCode.getCode();
+            emailService.sendEmail("nguyntrungkin091@gmail.com", user.getEmail(), subject, body);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        return ResponseEntity.ok(existingOrder);
+    }
+
+    // cancel order (delete activation code)
+    @PostMapping("/cancel-order")
+    public ResponseEntity<Order> cancelOrder(@RequestBody Order order) {
+        Order existingOrder = orderService.getOrderById(order.getId());
+
+        if (existingOrder == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        existingOrder.setOrderStatus(Order.OrderStatus.CANCELLED);
+        orderService.updateOrder(existingOrder);
+
+        ActivationCode activationCode = activationCodeService.getActivationCodeById(existingOrder.getActivationCodeId());
+        activationCodeService.deleteActivationCode(activationCode.getId());
+
+        return ResponseEntity.ok(existingOrder);
     }
 }
 

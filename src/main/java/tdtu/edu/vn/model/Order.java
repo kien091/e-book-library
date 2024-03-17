@@ -3,14 +3,9 @@ package tdtu.edu.vn.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.Field;
 
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +25,7 @@ public class Order {
     public enum OrderStatus {
         CART,
         ORDERED,
-        DELIVERED,
+        ACCEPTED,
         CANCELLED
     }
 }

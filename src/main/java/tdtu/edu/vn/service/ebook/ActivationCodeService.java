@@ -77,4 +77,8 @@ public class ActivationCodeService {
         }
         return null;
     }
+
+    public void deleteActivationCode(String id) {
+        activationCodeRepository.deleteById(id);
+    }
 }
