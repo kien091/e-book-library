@@ -15,28 +15,21 @@ public class OrderItemService { // Modify
     private OrderItemRepository orderItemRepository;
 
 
-    // Only CRUD
+    // CRUD
+    public OrderItem createOrderItem(OrderItem orderItem) {
+        return orderItemRepository.save(orderItem);
+    }
+
     public Page<OrderItem> getAllOrderItems(Pageable pageable) {
         return orderItemRepository.findAll(pageable);
     }
 
-    public OrderItem getOrderItemByOrderIdAndBookId(String orderId, String bookId) {
-        return orderItemRepository.findByBookIdAndOrderId(bookId, orderId);
+    public List<OrderItem> getAllOrderItems() {
+        return orderItemRepository.findAll();
     }
 
     public OrderItem getOrderItemById(String id) {
-        if (orderItemRepository.findById(id).isPresent()) {
-            return orderItemRepository.findById(id).get();
-        }
-        return null;
-    }
-
-    public List<OrderItem> getAllOrderItemByOrderId(String orderId) {
-        return orderItemRepository.findByOrderId(orderId);
-    }
-
-    public OrderItem createOrderItem(OrderItem orderItem) {
-        return orderItemRepository.save(orderItem);
+        return orderItemRepository.findById(id).orElse(null);
     }
 
     public OrderItem updateOrderItem(OrderItem orderItem) {
@@ -46,10 +39,23 @@ public class OrderItemService { // Modify
         return null;
     }
 
-    public void deleteOrderItem(String id) {
+    public boolean deleteOrderItem(String id) {
         if (orderItemRepository.existsById(id)) {
             orderItemRepository.deleteById(id);
+            return true;
         }
+        return false;
+    }
+
+
+
+    // Other methods
+    public OrderItem getOrderItemByOrderIdAndBookId(String orderId, String bookId) {
+        return orderItemRepository.findByBookIdAndOrderId(bookId, orderId);
+    }
+
+    public List<OrderItem> getAllOrderItemByOrderId(String orderId) {
+        return orderItemRepository.findByOrderId(orderId);
     }
 
     public OrderItem findByBookIdAndCartId(String bookId, String cartId) {

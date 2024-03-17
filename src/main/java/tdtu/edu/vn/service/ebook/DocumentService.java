@@ -19,6 +19,11 @@ import java.util.List;
 public class DocumentService {
     private DocumentRepository documentRepository;
 
+    // CRUD
+    public Document createDocument(Document document) {
+        return documentRepository.save(document);
+    }
+
     public List<Document> getAllDocuments() {
         return documentRepository.findAll();
     }
@@ -27,39 +32,33 @@ public class DocumentService {
     }
 
     public Document getDocumentById(String id) {
-        if(documentRepository.findById(id).isPresent())
-            return documentRepository.findById(id).get();
+        return documentRepository.findById(id).orElse(null);
+    }
+
+    public Document updateDocument(Document document) {
+        if (documentRepository.existsById(document.getId())) {
+            return documentRepository.save(document);
+        }
         return null;
     }
 
+    public boolean deleteDocument(String id) {
+        if (documentRepository.existsById(id)) {
+            documentRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+
+
+    // Other methods
     public Page<Document> searchDocuments(String searchTerm, Pageable pageable) {
         return documentRepository.searchByName(searchTerm, pageable);
     }
 
     public Page<Document> findCategory(String categoryId, Pageable pageable) {
         return documentRepository.findByCategoryId(categoryId, pageable);
-    }
-
-    public Document createDocument(Document document) {
-        return documentRepository.save(document);
-    }
-
-    public Document updateDocument(Document document) {
-        if (!documentRepository.existsById(document.getId())) {
-            return null;
-        }
-
-        return documentRepository.save(document);
-    }
-
-    public boolean deleteDocument(String id) {
-        try {
-            documentRepository.deleteById(id);
-        } catch (Exception e) {
-            return false;
-        }
-
-        return true;
     }
 
     public Document encryptDocument(Document document) throws IOException {

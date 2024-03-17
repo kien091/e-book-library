@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import tdtu.edu.vn.model.User;
 import tdtu.edu.vn.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +22,39 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
     private BCryptPasswordEncoder passwordEncoder;
 
+    // CRUD
+    public User createUser(User user) {
+        return userRepository.save(user);
+    }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+
+    public User getUserById(String id){
+        return userRepository.findById(id).orElse(null);
+    }
+
+    public User updateUser(User updatedUser) {
+        if(userRepository.existsById(updatedUser.getId())){
+            return userRepository.save(updatedUser);
+        }
+        return null;
+    }
+
+    public boolean deleteUser(String userId) {
+        if(userRepository.existsById(userId)){
+            userRepository.deleteById(userId);
+            return true;
+        }
+        return false;
+    }
+
+
+
+
+
+    // Other methods
     public void register(String username, String email, String password, String confirmPassword){
         User user = new User(username, email, password, confirmPassword);
 
@@ -45,7 +77,7 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean checkLogin(User user) {
-        User userDb = (User) findByEmail(user.getEmail());
+        User userDb = findByEmail(user.getEmail());
 
         if (userDb == null) {
             return false;
@@ -88,33 +120,6 @@ public class UserService implements UserDetailsService {
 
         return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(),
                 Collections.singletonList(new SimpleGrantedAuthority(user.getRole())));
-    }
-
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    public boolean deleteUser(String userId) {
-        try {
-            userRepository.deleteById(userId);
-        } catch (Exception e) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
-
-    public User updateUser(User updatedUser) {
-        return userRepository.save(updatedUser);
-    }
-
-    //My Profile User
-    public User getUserById(String id){
-        return userRepository.findById(id).orElse(null);
     }
 
     public User updateUser_Profile(User updatedUser)

@@ -1,46 +1,3 @@
-//package tdtu.edu.vn.controller;
-//
-//import lombok.SneakyThrows;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.core.io.ByteArrayResource;
-//import org.springframework.core.io.InputStreamResource;
-//import org.springframework.core.io.Resource;
-//import org.springframework.core.io.UrlResource;
-//import org.springframework.http.MediaType;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//import tdtu.edu.vn.model.Document;
-//import tdtu.edu.vn.service.ebook.DocumentService;
-//
-//import java.io.IOException;
-//import java.net.MalformedURLException;
-//import java.nio.file.Files;
-//import java.nio.file.Path;
-//import java.nio.file.Paths;
-//
-//@RestController
-//@CrossOrigin(origins = "http://localhost:3000")
-//@RequestMapping("")
-//public class ReadController {
-//    @Autowired
-//    private DocumentService documentService;
-//
-//    @SneakyThrows
-//    @GetMapping("/read/{id}/pdf")
-//    public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id) {
-//        // Assume documentService can fetch the document including the path to the PDF
-//        Document document = documentService.getDocumentById(id);
-//        Path path = Paths.get(document.getPdfUrl());
-//        ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(path));
-//
-//        return ResponseEntity.ok()
-//                .contentType(MediaType.APPLICATION_PDF)
-//                .body(resource);
-//    }
-//
-//
-//}
-
 package tdtu.edu.vn.controller;
 
 import lombok.AllArgsConstructor;
@@ -51,11 +8,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import tdtu.edu.vn.model.*;
-import tdtu.edu.vn.repository.ActivationCodeRespository;
 import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.AESUtil;
 import tdtu.edu.vn.util.JwtUtilsHelper;
-import tdtu.edu.vn.util.PDFSecurity;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -111,7 +66,7 @@ public class ReadController {
             activationCode.setCode("");
         }
         ActivationCode codeToCheck = activationCodeService.findValidActivationCode(activationCode.getCode(), id);
-
+        System.out.println("1: " + activationCode + "\n2: " + codeToCheck + "\n3: " + activation + "\n4: " + orderList);
         if(!activation.equals(codeToCheck)){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -155,7 +110,7 @@ public class ReadController {
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error reading document from disk: " + e.getMessage());
             // Trả về lỗi 500 nếu có lỗi khi đọc tài liệu
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }

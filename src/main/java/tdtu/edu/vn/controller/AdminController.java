@@ -24,7 +24,10 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/admin")
 public class AdminController {
+    private AuthorService authorService;
+    private CategoryService categoryService;
     private DocumentService documentService;
+    private PublisherService publisherService;
     private ActivationCodeService activationCodeService;
     private UserService userService;
     private OrderService orderService;
@@ -32,6 +35,120 @@ public class AdminController {
     private EncodeDocumentService edService;
 
 
+    // CRUD for author
+    @PostMapping("/create-author")
+    public ResponseEntity<Author> createAuthor(@RequestBody Author newAuthor) {
+        newAuthor.setId(null);
+        Author savedAuthor = authorService.createAuthor(newAuthor);
+        if (savedAuthor == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(savedAuthor);
+    }
+
+    @GetMapping("/authors")
+    public ResponseEntity<List<Author>> getAllAuthors() {
+        List<Author> authors = authorService.getAllAuthors();
+        if (authors == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(authors);
+    }
+
+    @GetMapping("/author/{id}")
+    public ResponseEntity<Author> getAuthorById(@PathVariable String id) {
+        Author author = authorService.getAuthorById(id);
+        if (author == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(author);
+    }
+
+    @PostMapping("/update-author") // should be PATCH method
+    public ResponseEntity<Author> updateAuthor(@RequestBody Author updatedAuthor) {
+        Author existingAuthor = authorService.getAuthorById(updatedAuthor.getId());
+        if (existingAuthor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Author savedAuthor = authorService.updateAuthor(updatedAuthor);
+        if (savedAuthor == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(savedAuthor);
+    }
+
+    @PostMapping("/delete-author") // should DELETE method
+    public ResponseEntity<Author> deleteAuthor(@RequestBody Author author) {
+        Author existingAuthor = authorService.getAuthorById(author.getId());
+        if (existingAuthor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (authorService.deleteAuthor(author.getId())) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+
+
+    // CRUD for category
+    @PostMapping("/create-category")
+    public ResponseEntity<Category> createCategory(@RequestBody Category newCategory) {
+        newCategory.setId(null);
+        Category savedCategory = categoryService.createCategory(newCategory);
+        if (savedCategory == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(savedCategory);
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> categories = categoryService.getAllCategories();
+        if (categories == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(categories);
+    }
+
+
+    @GetMapping("/category/{id}")
+    public ResponseEntity<Category> getCategoryById(@PathVariable String id) {
+        Category category = categoryService.getCategoryById(id);
+        if (category == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(category);
+    }
+
+    @PostMapping("/update-category") // should be PATCH method
+    public ResponseEntity<Category> updateCategory(@RequestBody Category updatedCategory) {
+        Category existingCategory = categoryService.getCategoryById(updatedCategory.getId());
+        if (existingCategory == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Category savedCategory = categoryService.updateCategory(updatedCategory);
+        if (savedCategory == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(savedCategory);
+    }
+
+    @PostMapping("/delete-category") // should DELETE method
+    public ResponseEntity<Category> deleteCategory(@RequestBody Category category) {
+        Category existingCategory = categoryService.getCategoryById(category.getId());
+        if (existingCategory == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (categoryService.deleteCategory(category.getId())) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+
+
+    // CRUD for document
     @PostMapping("/create-document")
     public ResponseEntity<Document> createDocument(@RequestBody Document newBook) {
         newBook.setId(null);
@@ -54,6 +171,28 @@ public class AdminController {
         }
 
         return ResponseEntity.ok(savedDocument);
+    }
+
+    @GetMapping("/documents")
+    public ResponseEntity<List<Document>> getAllDocuments() {
+        List<Document> documents = documentService.getAllDocuments();
+
+        if (documents == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(documents);
+    }
+
+    @GetMapping("/document/{id}")
+    public ResponseEntity<Document> getDocumentById(@PathVariable String id) {
+        Document document = documentService.getDocumentById(id);
+
+        if (document == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(document);
     }
 
     @PostMapping("/update-document")
@@ -88,95 +227,8 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
-    @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllDocuments() {
-        List<User> users = userService.getAllUsers();
 
-        if (users == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return ResponseEntity.ok(users);
-    }
-
-    @PostMapping("/create-user")
-    public ResponseEntity<User> createUser(@RequestBody User newUser) {
-        newUser.setId(null);
-
-        User savedUser = userService.createUser(newUser);
-
-        if (savedUser == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return ResponseEntity.ok(savedUser);
-    }
-
-    @PostMapping("/update-user")
-    public ResponseEntity<User> updateUser(@RequestBody User updatedUser) {
-        User existingUser = userService.findByEmail(updatedUser.getEmail());
-
-        if (existingUser == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        User savedUser = userService.updateUser(updatedUser);
-
-        if (savedUser == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return ResponseEntity.ok(savedUser);
-    }
-
-    @PostMapping("/delete-user")
-    public ResponseEntity<User> deleteUser(@RequestBody User user, Principal principal) {
-        if (principal.getName().equals(user.getEmail())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        User existingUser = userService.findByEmail(user.getEmail());
-
-        if (existingUser == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        if (userService.deleteUser(user.getId())) {
-            return ResponseEntity.ok().build();
-        }
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-    }
-
-    @PostMapping("/change-user-password")
-    public ResponseEntity<User> changeUserPassword(@RequestBody User user) {
-        User existingUser = userService.findByEmail(user.getEmail());
-
-        if (existingUser == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        existingUser.setConfirmPassword(passwordEncoder.encode(user.getPassword()));
-        User savedUser = userService.updateUser(existingUser);
-
-        if (savedUser == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        return ResponseEntity.ok(savedUser);
-    }
-
-    private String generatePassword() {
-        Random random = new Random();
-        int length = 16;
-
-        // with 10 digits and 26 characters (use ascii code to convert to character)
-        return System.currentTimeMillis() + random.ints(length, 0, 36)
-                .mapToObj(i -> i < 10 ? String.valueOf(i) : String.valueOf((char) (i + 55)))
-                .collect(Collectors.joining());
-    }
-
+    // CRUD for Order
     @PostMapping("/create-order")
     public ResponseEntity<Order> createOrder(@RequestBody Order newOrder) {
         newOrder.setId(null);
@@ -190,7 +242,64 @@ public class AdminController {
         return ResponseEntity.ok(savedOrder);
     }
 
-    @PostMapping("/update-order")
+    @GetMapping("/orders")
+    public ResponseEntity<List<OrderResponse>> getAllOrders() {
+        List<OrderResponse> responses = new ArrayList<>();
+        List<Order> orders = orderService.getAllOrders();
+
+        if (orders == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        for (Order order : orders) {
+            User user = userService.getUserById(order.getUserId());
+            List<Document> documents = new ArrayList<>();
+
+            for (String bookId : order.getBookIds()) {
+                try {
+                    documents.add(documentService.getDocumentById(bookId));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+            ActivationCode activationCode = null;
+            if (order.getActivationCodeId() != null) {
+                activationCode = activationCodeService.getActivationCodeById(order.getActivationCodeId());
+            }
+            responses.add(new OrderResponse(order, user, documents, activationCode));
+        }
+
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/order/{id}")
+    public ResponseEntity<OrderResponse> getOrderById(@PathVariable String id) {
+        Order order = orderService.getOrderById(id);
+
+        if (order == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userService.getUserById(order.getUserId());
+        List<Document> documents = new ArrayList<>();
+
+        for (String bookId : order.getBookIds()) {
+            try {
+                documents.add(documentService.getDocumentById(bookId));
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+        }
+
+        ActivationCode activationCode = null;
+        if (order.getActivationCodeId() != null) {
+            activationCode = activationCodeService.getActivationCodeById(order.getActivationCodeId());
+        }
+
+        return ResponseEntity.ok(new OrderResponse(order, user, documents, activationCode));
+    }
+
+    @PostMapping("/update-order") // should be PATCH
     public ResponseEntity<Order> updateOrder(@RequestBody Order updatedOrder) {
         Order existingOrder = orderService.getOrderById(updatedOrder.getId());
 
@@ -224,44 +333,178 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
-    @GetMapping("/orders")
-    public ResponseEntity<List<OrderResponse>> getAllOrders() {
-        List<OrderResponse> responses = new ArrayList<>();
-        List<Order> orders = orderService.getAllOrders();
-
-        if (orders == null) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-
-        for (Order order : orders) {
-            User user = userService.getUserById(order.getUserId());
-            List<Document> documents = new ArrayList<>();
-
-            for (String bookId : order.getBookIds()) {
-                try {
-                    documents.add(documentService.getDocumentById(bookId));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            ActivationCode activationCode = null;
-            if (order.getActivationCodeId() != null) {
-                activationCode = activationCodeService.getActivationCodeById(order.getActivationCodeId());
-            }
-            responses.add(new OrderResponse(order, user, documents, activationCode));
-        }
-
-        return ResponseEntity.ok(responses);
-    }
-
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    class OrderResponse {
+    public static class OrderResponse {
         Order order;
         User user;
         List<Document> documents;
         ActivationCode activationCode;
+    }
+
+
+    // CRUD for Publisher
+    @PostMapping("/create-publisher")
+    public ResponseEntity<Publisher> createPublisher(@RequestBody Publisher newPublisher) {
+        newPublisher.setId(null);
+        Publisher savedPublisher = publisherService.createPublisher(newPublisher);
+        if (savedPublisher == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(savedPublisher);
+    }
+
+    @GetMapping("/publishers")
+    public ResponseEntity<List<Publisher>> getAllPublishers() {
+        List<Publisher> publishers = publisherService.getAllPublishers();
+        if (publishers == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(publishers);
+    }
+
+    @GetMapping("/publisher/{id}")
+    public ResponseEntity<Publisher> getPublisherById(@PathVariable String id) {
+        Publisher publisher = publisherService.getPublisherById(id);
+        if (publisher == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(publisher);
+    }
+
+    @PostMapping("/update-publisher") // should be PATCH method
+    public ResponseEntity<Publisher> updatePublisher(@RequestBody Publisher updatedPublisher) {
+        Publisher existingPublisher = publisherService.getPublisherById(updatedPublisher.getId());
+        if (existingPublisher == null) {
+            return ResponseEntity.notFound().build();
+        }
+        Publisher savedPublisher = publisherService.updatePublisher(updatedPublisher);
+        if (savedPublisher == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+        return ResponseEntity.ok(savedPublisher);
+    }
+
+
+    @PostMapping("/delete-publisher") // should DELETE method
+    public ResponseEntity<Publisher> deletePublisher(@RequestBody Publisher publisher) {
+        Publisher existingPublisher = publisherService.getPublisherById(publisher.getId());
+        if (existingPublisher == null) {
+            return ResponseEntity.notFound().build();
+        }
+        if (publisherService.deletePublisher(publisher.getId())) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+
+
+    // CRUD for User
+    @PostMapping("/create-user")
+    public ResponseEntity<User> createUser(@RequestBody User newUser) {
+        newUser.setId(null);
+
+        User savedUser = userService.createUser(newUser);
+
+        if (savedUser == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(savedUser);
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+
+        if (users == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/user/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+        User user = userService.getUserById(id);
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(user);
+    }
+
+    @PostMapping("/update-user") // should be PATCH method
+    public ResponseEntity<User> updateUser(@RequestBody User updatedUser) {
+        User existingUser = userService.findByEmail(updatedUser.getEmail());
+
+        if (existingUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User savedUser = userService.updateUser(updatedUser);
+
+        if (savedUser == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(savedUser);
+    }
+
+    @PostMapping("/delete-user") // should DELETE method
+    public ResponseEntity<User> deleteUser(@RequestBody User user, Principal principal) {
+        if (principal.getName().equals(user.getEmail())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        User existingUser = userService.findByEmail(user.getEmail());
+
+        if (existingUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        if (userService.deleteUser(user.getId())) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+    }
+
+
+
+
+
+    // Another methods (not CRUD)
+    @PostMapping("/change-user-password")
+    public ResponseEntity<User> changeUserPassword(@RequestBody User user) {
+        User existingUser = userService.findByEmail(user.getEmail());
+
+        if (existingUser == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        existingUser.setPassword(passwordEncoder.encode(user.getPassword()));
+        existingUser.setConfirmPassword(passwordEncoder.encode(user.getPassword()));
+        User savedUser = userService.updateUser(existingUser);
+
+        if (savedUser == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+
+        return ResponseEntity.ok(savedUser);
+    }
+
+    private String generatePassword() {
+        Random random = new Random();
+        int length = 16;
+
+        // with 10 digits and 26 characters (use ascii code to convert to character)
+        return System.currentTimeMillis() + random.ints(length, 0, 36)
+                .mapToObj(i -> i < 10 ? String.valueOf(i) : String.valueOf((char) (i + 55)))
+                .collect(Collectors.joining());
     }
 }
 

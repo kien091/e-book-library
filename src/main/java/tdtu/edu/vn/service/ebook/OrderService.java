@@ -61,8 +61,11 @@ public class OrderService {
     }
 
     public boolean deleteOrder(Order order) {
-        orderRepository.delete(order);
-        return true;
+        if(orderRepository.existsById(order.getId())) {
+            orderRepository.delete(order);
+            return true;
+        }
+        return false;
     }
 
     public Order getOrderById(String id) {
