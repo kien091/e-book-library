@@ -33,7 +33,7 @@ public class ReadController {
     private JwtUtilsHelper jwtUtilsHelper;
     private OrderService orderService;
     private EncodeDocumentService edService;
-    @GetMapping("/read/{id}/pdf")
+    @PostMapping("/read/{id}/pdf")
     public ResponseEntity<Resource> getDocumentPdf(@PathVariable String id, @RequestBody(required = false) ActivationCode activationCode, HttpServletRequest request) {
         // Lấy token từ header
         String token = request.getHeader("Authorization");
@@ -42,8 +42,13 @@ public class ReadController {
         }
         // Lấy thông tin người dùng từ token
         String email = jwtUtilsHelper.getEmailFromToken(token);
+        String role = jwtUtilsHelper.getRoleFromToken(token);
         User user = userService.findByEmail(email);
         String userId = user.getId();
+
+        if(role.equals("ROLE_ADMIN")){
+            return serveDocument(documentService.getDocumentById(id));
+        }
 
         Document document = documentService.getDocumentById(id);
         if (!document.getDrmEnabled()) {
@@ -99,11 +104,6 @@ public class ReadController {
 
             // Đọc tài liệu từ đĩa
             byte[] documentBytes = Files.readAllBytes(path);
-            // Giả sử tài liệu được mã hóa, giải mã tài liệu nếu cần
-            if (document.getDrmEnabled()) {
-                //Giả sử phương thức decryptDocumentBytes được triển khai khi cần thiết
-                documentBytes = decryptDocumentBytes(documentBytes, "minhphuong9902");
-            }
 
             ByteArrayResource resource = new ByteArrayResource(documentBytes);
             return ResponseEntity.ok()
@@ -115,10 +115,4 @@ public class ReadController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-
-    private byte[] decryptDocumentBytes(byte[] documentBytes, String yourActivationCode) {
-        //Giả sử logic giải mã được thực hiện khi cần thiết
-        return documentBytes;
-    }
-
 }
