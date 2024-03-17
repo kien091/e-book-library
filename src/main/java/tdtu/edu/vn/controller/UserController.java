@@ -38,6 +38,8 @@ public class UserController {
             Map<String, Object> data = new HashMap<>();
             data.put("token", token);
             data.put("id", userDb.getId());
+            data.put("role", userDb.getRole());
+            data.put("email", userDb.getEmail());
             responseData.setData(data);
 
             return ResponseEntity.ok(responseData);
