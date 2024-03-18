@@ -30,6 +30,9 @@ public class DocumentService {
     public Page<Document> getAllDocuments(Pageable pageable) {
         return documentRepository.findAll(pageable);
     }
+    public Page<Document> getFreeDocuments(Pageable pageable) {
+        return documentRepository.findByDrmEnabled(false, pageable);
+    }
 
     public Document getDocumentById(String id) {
         return documentRepository.findById(id).orElse(null);
@@ -54,7 +57,20 @@ public class DocumentService {
 
     // Other methods
     public Page<Document> searchDocuments(String searchTerm, Pageable pageable) {
-        return documentRepository.searchByName(searchTerm, pageable);
+        if ( searchTerm == null || searchTerm.isEmpty() || searchTerm.equals("all") ){
+            return documentRepository.findAll(pageable);
+        } else if (searchTerm.toLowerCase().contains("miễn phí")|| searchTerm.toLowerCase().contains("free")){
+            return documentRepository.findByDrmEnabled(false, pageable);
+        } else if (searchTerm.toLowerCase().contains("trả phí") || searchTerm.toLowerCase().contains("bản quyền")){
+            return documentRepository.findByDrmEnabled(true, pageable);
+        } else{
+            try{
+                int year = Integer.parseInt(searchTerm);
+                return documentRepository.findByYear(year, pageable);
+            } catch (NumberFormatException e){
+                return documentRepository.searchByName(searchTerm, pageable);
+            }
+        }
     }
 
     public Page<Document> findCategory(String categoryId, Pageable pageable) {

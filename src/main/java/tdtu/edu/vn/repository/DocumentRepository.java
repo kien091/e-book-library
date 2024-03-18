@@ -13,4 +13,10 @@ public interface DocumentRepository extends MongoRepository<Document, String> {
     Page<Document> searchByName(String keyword, Pageable pageable);
 
     Page<Document> findByCategoryId(String categoryId, Pageable pageable);
+
+    Page<Document> findByDrmEnabled(boolean drmEnabled, Pageable pageable);
+
+    Page<Document> findByYear(int year, Pageable pageable);
 }
+
+

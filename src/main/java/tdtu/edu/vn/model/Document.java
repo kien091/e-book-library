@@ -29,8 +29,9 @@ public class Document implements Serializable {
     private String discountId;
     private Boolean drmEnabled;
     private String status;
+    private int year = 2002;
 
-    public Document(String name, String price, int quantity, String authorId, String publisherId, String categoryId, String thumbnail, String pdfUrl, String publicationDate, String description, String discountId, Boolean drmEnabled, String status) {
+    public Document(String name, String price, int quantity, String authorId, String publisherId, String categoryId, String thumbnail, String pdfUrl, String publicationDate, String description, String discountId, Boolean drmEnabled, String status, int year) {
         this.name = name;
         this.price = price;
         this.quantity = quantity;
@@ -44,6 +45,7 @@ public class Document implements Serializable {
         this.discountId = discountId;
         this.drmEnabled = drmEnabled;
         this.status = status;
+        this.year = year;
     }
 
 

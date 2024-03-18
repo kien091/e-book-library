@@ -21,6 +21,12 @@ public class DocumentController {
         return documentService.getAllDocuments(PageRequest.of(page, size));
     }
 
+    @GetMapping("/documents-free")
+    public Page<Document> getFreeDocuments(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size){
+        return documentService.getFreeDocuments(PageRequest.of(page, size));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Document> getDocumentById(@PathVariable String id) {
         Document document = documentService.getDocumentById(id);
