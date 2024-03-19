@@ -43,11 +43,12 @@ public class DocumentController {
         return documentService.searchDocuments(searchTerm, PageRequest.of(page, size));
     }
 
-    @GetMapping("category/{categoryId}")
-    public Page<Document> getDocumentsByCategory(@PathVariable String categoryId,
-                                                 @RequestParam(defaultValue = "0") int page,
-                                                 @RequestParam(defaultValue = "10") int size){
-        return documentService.findCategory(categoryId, PageRequest.of(page, size));
+    @GetMapping("/category")
+    public Page<Document> getDocumentsByCategoryName(
+            @RequestParam String categoryName,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return documentService.findDocumentsByCategoryName(categoryName, PageRequest.of(page, size));
 
     }
 

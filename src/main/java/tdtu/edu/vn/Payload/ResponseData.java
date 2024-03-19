@@ -5,6 +5,8 @@ public class ResponseData {
     private int Status = 200;
     private String desc;
     private Object data;
+    private String message;
+
 
     private boolean success = true;
 
@@ -38,6 +40,14 @@ public class ResponseData {
 
     public void setSuccess(boolean success) {
         this.success = success;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }
 

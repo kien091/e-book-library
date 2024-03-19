@@ -7,7 +7,9 @@ import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import tdtu.edu.vn.model.Category;
 import tdtu.edu.vn.model.Document;
+import tdtu.edu.vn.repository.CategoryRepository;
 import tdtu.edu.vn.repository.DocumentRepository;
 
 import java.io.File;
@@ -18,6 +20,7 @@ import java.util.List;
 @AllArgsConstructor
 public class DocumentService {
     private DocumentRepository documentRepository;
+    private CategoryRepository categoryRepository;
 
     // CRUD
     public Document createDocument(Document document) {
@@ -73,9 +76,22 @@ public class DocumentService {
         }
     }
 
-    public Page<Document> findCategory(String categoryId, Pageable pageable) {
-        return documentRepository.findByCategoryId(categoryId, pageable);
+
+    public Page<Document> findDocumentsByCategoryName(String categoryName, Pageable pageable) {
+        if ("all".equals(categoryName) || categoryName == null || categoryName.isEmpty()) {
+            return documentRepository.findAll(pageable);
+        } else {
+            List<Category> categories = categoryRepository.findByName(categoryName);
+            if (!categories.isEmpty()) {
+                Category category = categories.get(0);
+                return documentRepository.findByCategoryId(category.getId(), pageable);
+            } else {
+                // Trả về một Page rỗng nếu không tìm thấy danh mục
+                return Page.empty(pageable);
+            }
+        }
     }
+
 
     public Document encryptDocument(Document document) throws IOException {
         File sourceFile = new File(document.getPdfUrl());

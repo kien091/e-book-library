@@ -50,6 +50,10 @@ public class CustomFilterSecurity {
                 .antMatchers("/login",
                         "/register",
                         "/home/**",
+                        "/verifyOTP/**",
+                        "/verify-reset-password-token/**",
+                        "/forgot-password/**",
+                        "/reset-password/**",
                         "/read/**").permitAll()
                 .antMatchers("/admin/**").permitAll()
                 .antMatchers("/orders/**").permitAll()

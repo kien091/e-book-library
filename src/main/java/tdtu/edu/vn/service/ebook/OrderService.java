@@ -79,7 +79,7 @@ public class OrderService {
                 .stream()
                 .filter(order -> order.getUserId().equals(userId))
                 .filter(order -> orderItems.stream().anyMatch(orderItem -> orderItem.getOrderId().equals(order.getId())))
-                .filter(order -> order.getOrderStatus().equals(Order.OrderStatus.ORDERED))
+                .filter(order -> order.getOrderStatus().equals(Order.OrderStatus.ACCEPTED))
                 .toList();
     }
 

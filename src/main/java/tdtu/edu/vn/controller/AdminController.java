@@ -1,5 +1,6 @@
 package tdtu.edu.vn.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,16 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import tdtu.edu.vn.model.*;
 import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.AESUtil;
 import tdtu.edu.vn.util.PDFSecurity;
 
+import java.io.IOException;
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -230,6 +230,8 @@ public class AdminController {
 
 
     // CRUD for Order
+
+
     @PostMapping("/create-order")
     public ResponseEntity<Order> createOrder(@RequestBody Order newOrder) {
         newOrder.setId(null);
@@ -404,16 +406,38 @@ public class AdminController {
 
     // CRUD for User
     @PostMapping("/create-user")
-    public ResponseEntity<User> createUser(@RequestBody User newUser) {
-        newUser.setId(null);
+    public ResponseEntity<?> createUser(
+            @RequestParam Map<String, String> userDetails,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatarFile) {
+        try {
+            // Tạo một đối tượng User mới từ userDetails
+            User user = new User();
+            // Đặt các trường thông tin người dùng từ userDetails
+            user.setUsername(userDetails.get("username"));
+            user.setPosition(userDetails.get("position"));
+            user.setEmail(userDetails.get("email"));
+            user.setPhone(userDetails.get("phone"));
+            user.setPassword(userDetails.get("password"));
+            user.setConfirmPassword(userDetails.get("confirmPassword"));
+            user.setFullname(userDetails.get("fullname"));
+            user.setAddress(userDetails.get("address"));
+            user.setSex(userDetails.get("sex"));
+            user.setBirthday(userDetails.get("birthday"));
+            user.setSubscribe(userDetails.get("subscribe"));
+            user.setRole(userDetails.get("role"));
+            user.setLocked(Boolean.parseBoolean(userDetails.get("isLocked")));
 
-        User savedUser = userService.createUser(newUser);
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                // Xử lý file ở đây: lưu trữ và cập nhật đường dẫn hoặc lưu trực tiếp byte[]
+                byte[] avatarBytes = avatarFile.getBytes();
+                user.setAvatar(avatarBytes); // Lưu trữ byte[] vào avatar
+            }
 
-        if (savedUser == null) {
+            User createdUser = userService.createUser(user); // Gọi hàm tạo người dùng mới trong service
+            return ResponseEntity.ok(createdUser);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        return ResponseEntity.ok(savedUser);
     }
 
     @GetMapping("/users")
@@ -438,22 +462,46 @@ public class AdminController {
         return ResponseEntity.ok(user);
     }
 
-    @PostMapping("/update-user") // should be PATCH method
-    public ResponseEntity<User> updateUser(@RequestBody User updatedUser) {
-        User existingUser = userService.findByEmail(updatedUser.getEmail());
+    @PostMapping("/update-user")
+    public ResponseEntity<?> updateUser(
+            @RequestParam Map<String, String> userDetails,
+            @RequestParam(value = "avatar", required = false) MultipartFile avatarFile) {
+        try {
+            // Xử lý thông tin người dùng từ userDetails
+            String userId = userDetails.get("id"); // Giả sử bạn gửi id (nếu đây là cập nhật)
+            User user = userService.getUserById(userId);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+            // Cập nhật các trường thông tin người dùng từ userDetails
+            user.setUsername(userDetails.get("username"));
+            user.setPosition(userDetails.get("position"));
+            user.setEmail(userDetails.get("email"));
+            user.setPhone(userDetails.get("phone"));
+            user.setPassword(userDetails.get("password"));
+            user.setConfirmPassword(userDetails.get("confirmPassword"));
+            user.setFullname(userDetails.get("fullname"));
+            user.setAddress(userDetails.get("address"));
+            user.setSex(userDetails.get("sex"));
+            user.setBirthday(userDetails.get("birthday"));
+            user.setSubscribe(userDetails.get("subscribe"));
+            user.setRole(userDetails.get("role"));
+            user.setLocked(Boolean.parseBoolean(userDetails.get("isLocked")));
 
-        if (existingUser == null) {
-            return ResponseEntity.notFound().build();
-        }
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                // Xử lý file ở đây: lưu trữ và cập nhật đường dẫn hoặc lưu trực tiếp byte[]
+                byte[] avatarBytes = avatarFile.getBytes();
+                user.setAvatar(avatarBytes); // Lưu trữ byte[] vào avatar
+            }
 
-        User savedUser = userService.updateUser(updatedUser);
-
-        if (savedUser == null) {
+            User updatedUser = userService.updateUser(user); // Gọi hàm cập nhật người dùng trong service
+            return ResponseEntity.ok(updatedUser);
+        } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-
-        return ResponseEntity.ok(savedUser);
     }
+
+
 
     @PostMapping("/delete-user") // should DELETE method
     public ResponseEntity<User> deleteUser(@RequestBody User user, Principal principal) {

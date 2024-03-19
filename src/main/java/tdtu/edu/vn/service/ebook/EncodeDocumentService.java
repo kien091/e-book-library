@@ -17,4 +17,8 @@ public class EncodeDocumentService {
     public EncodeDocument findByDocumentId(String documentId) {
         return edRepository.findByDocumentId(documentId);
     }
+
+    public void deleteEncodeDocument(String id) {
+        edRepository.deleteById(id);
+    }
 }

@@ -18,6 +18,7 @@ public class User implements Serializable {
     @Id
     private String id;
     private String username;
+    private String position; //chức vụ công ty
     private String email;
     private String phone;
     private String password;
@@ -27,12 +28,14 @@ public class User implements Serializable {
     private String sex;
     private String birthday;
     private Date createday;
-    private String subscribe;
+    private String subscribe; //mô tả bản thân
     private byte[] avatar;
     private String role;
     private boolean isLocked = false;
-    private boolean personlocked = false;
-    private boolean isDeleted = false;
+
+
+
+
 
     public User(String username, String email, String password, String confirmPassword){
         this.username = username;
@@ -40,6 +43,7 @@ public class User implements Serializable {
         this.password = password;
         this.confirmPassword = confirmPassword;
     }
+
 }
 
 
