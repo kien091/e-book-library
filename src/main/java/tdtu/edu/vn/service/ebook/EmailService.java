@@ -19,7 +19,7 @@ public class EmailService {
         try {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-            helper.setFrom(from, "Movie Online System");
+            helper.setFrom(from, "DRM DOCUMENT");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, true);
@@ -33,7 +33,7 @@ public class EmailService {
     public void sendOTPEmail(String to, String otp) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-        helper.setFrom("your-email@example.com");
+        helper.setFrom("phuongit9902@drm.com");
         helper.setTo(to);
         helper.setSubject("OTP for Login");
         helper.setText("Your OTP for login is: " + otp, true);
@@ -45,7 +45,7 @@ public class EmailService {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
-        helper.setFrom("your-email@example.com");
+        helper.setFrom("phuongit9902@drm.com");
         helper.setTo(recipientEmail);
         helper.setSubject("OTP for Password Reset");
         helper.setText("Your OTP for resetting your password is: " + otp, true);
@@ -58,7 +58,7 @@ public class EmailService {
         MimeMessage message = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-        helper.setFrom("noreply@example.com", "DRM DOCUMENT");
+        helper.setFrom("phuongit9902@drm.com", "DRM DOCUMENT");
         helper.setTo(recipientEmail);
         helper.setSubject("Reset Your Password");
 
