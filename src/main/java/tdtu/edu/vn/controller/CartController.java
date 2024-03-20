@@ -4,10 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import tdtu.edu.vn.model.Document;
-import tdtu.edu.vn.model.Order;
-import tdtu.edu.vn.model.OrderItem;
-import tdtu.edu.vn.model.User;
+import tdtu.edu.vn.model.*;
 import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.JwtUtilsHelper;
 
@@ -46,6 +43,11 @@ public class CartController { // Modify
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
             }
 
+            ActivationCode activationCode = acService.findValidCodeWithOrderIdAndBookId(orderService.getAllOrders(), document.getId());
+            if(activationCode != null || !document.getDrmEnabled()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Activation code is not valid or document is not DRM enabled");
+            }
+
             // update order
             Order order = orderService.getCartByUser(user);
             if (order == null) {
@@ -73,13 +75,11 @@ public class CartController { // Modify
                 orderItem = new OrderItem();
                 orderItem.setOrderId(order.getId());
                 orderItem.setBookId(document.getId());
-                orderItem.setQuantity(1);
                 orderItem.setDate(new Date());
                 orderItem.setCombo(false);
                 orderItemService.createOrderItem(orderItem);
             }else {
-                orderItem.setQuantity(orderItem.getQuantity() + 1);
-                orderItemService.updateOrderItem(orderItem);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Book already exists in cart");
             }
 
             return ResponseEntity.ok("Add book to cart successfully");
@@ -114,20 +114,14 @@ public class CartController { // Modify
                 if(orderItem == null) {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
                 }else {
-                    if(orderItem.getQuantity() == 1){
-                        List<String> bookIds = cart.getBookIds();
-                        bookIds.remove(document.getId());
-                        if (bookIds.isEmpty()) {
-                            orderService.deleteOrder(cart);
-                        }else {
-                            orderService.updateOrder(cart);
-                        }
-                        orderItemService.deleteOrderItem(orderItem.getId());
+                    List<String> bookIds = cart.getBookIds();
+                    bookIds.remove(document.getId());
+                    if (bookIds.isEmpty()) {
+                        orderService.deleteOrder(cart);
+                    }else {
+                        orderService.updateOrder(cart);
                     }
-                    else {
-                        orderItem.setQuantity(orderItem.getQuantity() - 1);
-                        orderItemService.updateOrderItem(orderItem);
-                    }
+                    orderItemService.deleteOrderItem(orderItem.getId());
                 }
             }
             System.out.println("Cart not found");
