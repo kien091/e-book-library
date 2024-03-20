@@ -165,10 +165,11 @@ public class AdminController {
             EncodeDocument encodeDocument = new EncodeDocument(savedDocument.getId(), AESUtil.encrypt(generatePassword()));
             edService.createEncodeDocument(encodeDocument);
 
+            System.out.println("The passsword: " + encodeDocument.getPassword() + "\ncrypt: " + AESUtil.decrypt(encodeDocument.getPassword()));
             PDFSecurity.encryptPDF(
                     savedDocument.getPdfUrl(),
                     savedDocument.getPdfUrl(),
-                    encodeDocument.getPassword());
+                    AESUtil.decrypt(encodeDocument.getPassword()));
         }
 
         return ResponseEntity.ok(savedDocument);

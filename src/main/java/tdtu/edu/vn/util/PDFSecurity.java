@@ -20,6 +20,7 @@ public class PDFSecurity {
             StandardProtectionPolicy spp = new StandardProtectionPolicy(password, password, ap);
             spp.setEncryptionKeyLength(128);
             spp.setPermissions(ap);
+
             document.protect(spp);
 
             document.save(destination);
@@ -33,8 +34,21 @@ public class PDFSecurity {
         try {
             PDDocument pdDocument = PDDocument.load(new File(source), decryptedPassword);
 
+            int keyLength = 128;
+            AccessPermission ap = new AccessPermission();
+            ap.setCanPrint(false);
+
+            StandardProtectionPolicy spp = new StandardProtectionPolicy(decryptedPassword, decryptedPassword, ap);
+            spp.setEncryptionKeyLength(keyLength);
+            spp.setPermissions(ap);
+
+            pdDocument.setAllSecurityToBeRemoved(true);
+
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             pdDocument.save(byteArrayOutputStream);
+
+            pdDocument.protect(spp);
+
             pdDocument.close();
 
             return new ByteArrayResource(byteArrayOutputStream.toByteArray());

@@ -83,16 +83,13 @@ public class ReadController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        // auto enter password (change this if logic isn't correct)
-        EncodeDocument encodeDocument = edService.findByDocumentId(id);
-        ByteArrayResource resource = openEncryptedPdf(document.getPdfUrl(), AESUtil.decrypt(encodeDocument.getPassword()));
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(resource);
+        return serveDocument(document);
     }
 
     private ResponseEntity<Resource> serveDocument(Document document) {
         try {
+
+
             Path path = Paths.get(document.getPdfUrl());
             if (!Files.exists(path)) {
                 System.out.println("File does not exist at path: " + path);
@@ -105,7 +102,11 @@ public class ReadController {
             // Đọc tài liệu từ đĩa
             byte[] documentBytes = Files.readAllBytes(path);
 
-            ByteArrayResource resource = new ByteArrayResource(documentBytes);
+            // auto enter password (change this if logic isn't correct)
+            EncodeDocument encodeDocument = edService.findByDocumentId(document.getId());
+            ByteArrayResource resource = openEncryptedPdf(document.getPdfUrl(), AESUtil.decrypt(encodeDocument.getPassword()));
+            System.out.println("decrypt: " + encodeDocument.getPassword() + "password: " + AESUtil.decrypt(encodeDocument.getPassword()));
+
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
                     .body(resource);
