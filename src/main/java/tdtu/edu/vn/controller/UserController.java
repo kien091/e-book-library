@@ -13,14 +13,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tdtu.edu.vn.Payload.ResponseData;
-import tdtu.edu.vn.model.OTPCode;
-import tdtu.edu.vn.model.PasswordResetToken;
-import tdtu.edu.vn.model.User;
+import tdtu.edu.vn.model.*;
 import tdtu.edu.vn.repository.OTPCodeRepository;
 import tdtu.edu.vn.repository.PasswordResetTokenRepository;
-import tdtu.edu.vn.service.ebook.ActivationCodeService;
-import tdtu.edu.vn.service.ebook.EmailService;
-import tdtu.edu.vn.service.ebook.UserService;
+import tdtu.edu.vn.service.ebook.*;
 import tdtu.edu.vn.util.JwtUtilsHelper;
 import tdtu.edu.vn.Payload.ResponseData;
 import tdtu.edu.vn.util.ResetPasswordRequest;
@@ -36,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @CrossOrigin(origins = "http://localhost:3000")
 
 public class UserController {
-
      UserService userService;
      JwtUtilsHelper jwtUtilsHelper;
      ActivationCodeService activationCodeService;
@@ -44,6 +39,8 @@ public class UserController {
      BCryptPasswordEncoder passwordEncoder;
      OTPCodeRepository otpCodeRepository;
      PasswordResetTokenRepository passwordResetTokenRepository;
+     OrderService orderService;
+     DocumentService documentService;
 
     private static final int OTP_LENGTH = 6;
     private Map<String, Map<String, Object>> resetPasswordDataMap = new ConcurrentHashMap<>();
@@ -52,15 +49,18 @@ public class UserController {
     private String baseUrl ;
 
     @Autowired
-    public UserController(UserService userService, JwtUtilsHelper jwtUtilsHelper, ActivationCodeService activationCodeService, EmailService emailService, BCryptPasswordEncoder passwordEncoder, OTPCodeRepository otpCodeRepository, PasswordResetTokenRepository passwordResetTokenRepository) {
+    public UserController(UserService userService, JwtUtilsHelper jwtUtilsHelper, ActivationCodeService activationCodeService, EmailService emailService, BCryptPasswordEncoder passwordEncoder, OTPCodeRepository otpCodeRepository, PasswordResetTokenRepository passwordResetTokenRepository, OrderService orderService, DocumentService documentService) {
         this.userService = userService;
         this.jwtUtilsHelper = jwtUtilsHelper;
         this.activationCodeService = activationCodeService;
         this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
-        this.otpCodeRepository =otpCodeRepository;
+        this.otpCodeRepository = otpCodeRepository;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.orderService = orderService;
+        this.documentService = documentService;
     }
+
 
     public String generateResetPasswordLink(User user) {
         // Use the hardcoded base URL
@@ -369,5 +369,41 @@ public class UserController {
             System.err.println("Error updating user profile: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
+    }
+
+    @GetMapping("/user/history")
+    public ResponseEntity<?> getHistory(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token != null && token.startsWith("Bearer ")) {
+            token = token.substring(7);
+            String email = jwtUtilsHelper.getEmailFromToken(token);
+            User user = userService.findByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+            }
+
+            List<Order> orders = orderService.getAllOrdersByUserId(user.getId());
+            List<HistoryOrder> historyOrders = new ArrayList<>();
+            for (Order order : orders) {
+                HistoryOrder historyOrder = new HistoryOrder();
+                historyOrder.order = order;
+                List<Document> documents = new ArrayList<>();
+                for (String bookId : order.getBookIds()) {
+                    documents.add(documentService.getDocumentById(bookId));
+                }
+                historyOrder.documents = documents;
+                historyOrder.activationCode = activationCodeService.findActivationCodeIdByOrderId(order.getId());
+                historyOrders.add(historyOrder);
+            }
+            return ResponseEntity.ok(historyOrders);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+    }
+
+    public static class HistoryOrder{
+        Order order;
+        List<Document> documents;
+        ActivationCode activationCode;
     }
 }

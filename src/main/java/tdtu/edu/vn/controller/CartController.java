@@ -108,23 +108,28 @@ public class CartController { // Modify
             // update order
             Order cart = orderService.getCartByUser(user);
             if (cart == null) {
+                System.out.println("Cart not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
             }else {
                 OrderItem orderItem = orderItemService.findByBookIdAndCartId(document.getId(), cart.getId());
                 if(orderItem == null) {
+                    System.out.println("OrderItem not found");
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
                 }else {
+                    System.out.println("Remove book with id: " + document.getId() + " from cart with id: " + cart.getId());
                     List<String> bookIds = cart.getBookIds();
                     bookIds.remove(document.getId());
                     if (bookIds.isEmpty()) {
                         orderService.deleteOrder(cart);
+                        System.out.println("Delete cart successfully");
                     }else {
                         orderService.updateOrder(cart);
+                        System.out.println("Update cart successfully");
                     }
                     orderItemService.deleteOrderItem(orderItem.getId());
+                    System.out.println("Delete orderItem successfully");
                 }
             }
-            System.out.println("Cart not found");
 
             return ResponseEntity.ok("Remove book to cart successfully");
         }else {

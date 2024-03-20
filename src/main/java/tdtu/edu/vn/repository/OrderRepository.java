@@ -4,8 +4,10 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import tdtu.edu.vn.model.Order;
 
+import java.util.List;
+
 public interface OrderRepository extends MongoRepository<Order, String> {
-    Order findByUserId(String userId);
+    List<Order> findByUserId(String userId);
     Order findByActivationCodeId(String activationCodeIds);
     Order findByUserIdAndBookIdsContains(String userId, String bookId);
 
