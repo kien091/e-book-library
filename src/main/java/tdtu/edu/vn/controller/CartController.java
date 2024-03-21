@@ -89,50 +89,49 @@ public class CartController { // Modify
     }
 
     @PostMapping("/book/remove/{id}")
-    public ResponseEntity<String> removeBookToCart(@PathVariable String id, HttpServletRequest request){
+    public ResponseEntity<String> removeBookToCart(@PathVariable String id, HttpServletRequest request) {
         String token = request.getHeader("Authorization");
-        if(token != null && token.startsWith("Bearer ")) {
+        if (token != null && token.startsWith("Bearer ")) {
             token = token.substring(7);
             String email = jwtUtilsHelper.getEmailFromToken(token);
 
             User user = userService.findByEmail(email);
-            if(user == null) {
+            if (user == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
             }
 
             Document document = documentService.getDocumentById(id);
-            if(document == null){
+            System.out.println("document: "+document);
+            if (document == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document not found");
             }
 
-            // update order
             Order cart = orderService.getCartByUser(user);
+            System.out.println("cart "+cart);
             if (cart == null) {
-                System.out.println("Cart not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
-            }else {
-                OrderItem orderItem = orderItemService.findByBookIdAndCartId(document.getId(), cart.getId());
-                if(orderItem == null) {
-                    System.out.println("OrderItem not found");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found");
-                }else {
-                    System.out.println("Remove book with id: " + document.getId() + " from cart with id: " + cart.getId());
-                    List<String> bookIds = cart.getBookIds();
-                    bookIds.remove(document.getId());
-                    if (bookIds.isEmpty()) {
-                        orderService.deleteOrder(cart);
-                        System.out.println("Delete cart successfully");
-                    }else {
-                        orderService.updateOrder(cart);
-                        System.out.println("Update cart successfully");
-                    }
-                    orderItemService.deleteOrderItem(orderItem.getId());
-                    System.out.println("Delete orderItem successfully");
-                }
             }
 
-            return ResponseEntity.ok("Remove book to cart successfully");
-        }else {
+            OrderItem orderItem = orderItemService.findByOrderIdAndBookId(cart.getId(), id);
+            System.out.println("orderItem "+orderItem);
+            if (orderItem == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("OrderItem not found for bookId: " + id);
+            }
+
+            List<String> bookIds = cart.getBookIds();
+            System.out.println("bookIds "+bookIds);
+            bookIds.remove(document.getId());
+            cart.setBookIds(bookIds);
+            if (bookIds.isEmpty()) {
+                orderService.deleteOrder(cart);
+            } else {
+                orderService.updateOrder(cart);
+            }
+            orderItemService.deleteOrderItem(orderItem.getId());
+            System.out.println("book removed from cart successfully");
+
+            return ResponseEntity.ok("Book removed from cart successfully");
+        } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
     }
@@ -183,7 +182,9 @@ public class CartController { // Modify
             for (OrderItem orderItem : orderItems) {
                 Document document = documentService.getDocumentById(orderItem.getBookId());
                 if (document != null) {
-                    orderItem.setBookId(document.getName());
+                    orderItem.setBookId(document.getId());
+                    orderItem.setComboId(document.getName());
+
                 }
             }
             return ResponseEntity.ok(orderItems);

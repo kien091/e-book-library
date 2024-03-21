@@ -61,4 +61,8 @@ public class OrderItemService { // Modify
     public OrderItem findByBookIdAndCartId(String bookId, String cartId) {
         return orderItemRepository.findByBookIdAndOrderId(bookId, cartId);
     }
+    public OrderItem findByOrderIdAndBookId(String orderId, String bookId) {
+        return orderItemRepository.findByOrderIdAndBookId(orderId, bookId);
+    }
+
 }

@@ -401,7 +401,7 @@ public class UserController {
         }
     }
 
-    public static class HistoryOrder{
+    public static class HistoryOrder {
         Order order;
         List<Document> documents;
         ActivationCode activationCode;
