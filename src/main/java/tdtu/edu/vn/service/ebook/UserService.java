@@ -60,6 +60,7 @@ public class UserService implements UserDetailsService {
 
         user.setPassword(passwordEncoder.encode(password));
         user.setConfirmPassword(passwordEncoder.encode(password));
+        user.setPosition("");
         user.setPhone("");
         user.setFullname("");
         user.setAddress("");

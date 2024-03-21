@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @Document(collection = "EncodeDocument")
-public class EncodeDocument { // Modify
+public class EncodeDocument {
     @Id
     private String id;
     private String documentId;

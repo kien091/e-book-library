@@ -401,9 +401,25 @@ public class UserController {
         }
     }
 
-    public static class HistoryOrder {
-        Order order;
-        List<Document> documents;
-        ActivationCode activationCode;
+}
+
+class HistoryOrder {
+    Order order;
+    List<Document> documents;
+    ActivationCode activationCode;
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public List<Document> getDocuments() {
+        return documents;
+    }
+
+    public ActivationCode getActivationCode() {
+        return activationCode;
     }
 }
+
+
+
